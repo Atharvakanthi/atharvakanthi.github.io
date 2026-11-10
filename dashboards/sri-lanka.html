@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sri Lanka Property Market · Atharva Kanthi</title>
+<meta name="description" content="Sri Lanka sale, long-term rent and short-term rental markets compared by district, shown as shares and indices.">
+<meta name="theme-color" content="#0A0E13">
+<script>try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark')}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/site.css">
+
+</head>
+<body>
+<div class="progress"></div>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><i></i>Atharva Kanthi</a>
+  <nav class="links"><a href="../index.html">Portfolio</a><a href="../dashboards/index.html">Dashboards</a><a href="../index.html#reports">Reports</a><a href="../agent.html">Agent</a>
+    <button class="tbtn" type="button" aria-label="Toggle light and dark mode"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  </nav>
+</div></header>
+
+<main>
+<div class="wrap dash-top">
+  <a href="index.html" class="muted" style="font-size:14px">&larr; All dashboards</a>
+  <div style="margin-top:14px"><span class="eyebrow">Second-home market</span></div>
+  <h1>Sri Lanka Property Market</h1>
+  <p class="lede" style="margin-bottom:18px">Three markets in one island: buying, renting long term, and renting short term to visitors. Everything here is a share of the market or an index against the national median (national median = 100), so districts compare cleanly.</p>
+  <div class="callout"><b>Headline.</b> Short-term rental is the largest channel in the sample, and it is concentrated on the southern coast. Land price varies more than tenfold between districts, and short-term rentals earn well in places with low occupancy, which is a reminder that price and demand are different things.</div>
+</div>
+<section style="padding-top:8px"><div class="wrap"><div class="cgrid">
+  <div class="cpanel"><h3>Size of each channel</h3><div class="cap">Share of observed listings by market (%).</div><div class="cbox"><canvas id="c_chan"></canvas></div><p class="read" id="r_chan"></p></div>
+  <div class="cpanel"><h3>What is on offer</h3><div class="cap">Property type mix inside each market (%).</div><div class="cbox"><canvas id="c_mix"></canvas></div><p class="read" id="r_mix"></p></div>
+  <div class="cpanel"><h3>Land price index</h3><div class="cap">Median land price per perch by district, national median = 100.</div><div class="cbox"><canvas id="c_land"></canvas></div><p class="read" id="r_land"></p></div>
+  <div class="cpanel"><h3>Monthly rent index</h3><div class="cap">Median long-term rent, districts with enough data only, national median = 100.</div><div class="cbox"><canvas id="c_rent"></canvas></div><p class="read" id="r_rent"></p></div>
+  <div class="cpanel"><h3>Short-stay nightly rate index</h3><div class="cap">Median nightly rate for the 10 highest-priced districts, national median = 100, with average occupancy (%).</div><div class="cbox"><canvas id="c_str"></canvas></div><p class="read" id="r_str"></p></div>
+  <div class="cpanel"><h3>Occupancy of short stays</h3><div class="cap">Share of listings by average occupancy band (%).</div><div class="cbox"><canvas id="c_occ"></canvas></div><p class="read" id="r_occ"></p></div>
+  <div class="cpanel"><h3>Where the market is</h3><div class="cap">Share of each channel's listings by district, top 8 (%).</div><div class="cbox"><canvas id="c_dist"></canvas></div>
+    <div class="tabs" id="dtabs" style="margin-top:10px"></div></div>
+  <div class="cpanel"><h3>Bedroom mix</h3><div class="cap">Share of listings by bedrooms within each market (%).</div><div class="cbox"><canvas id="c_bed"></canvas></div><p class="read" id="r_bed"></p></div>
+</div>
+<p class="note">Method. Aggregates from a cross-section of online property listings in Sri Lanka, de-duplicated, with a minimum sample per district before a median is reported. Only shares and indices are shown. Listing prices are asking prices, not transaction prices. Short-stay occupancy is the platform's own estimate. Rent covers five districts with enough observations, so national comparisons for rent are indicative.</p>
+</div></section>
+</main>
+<footer class="site"><div class="wrap"><div class="row">
+  <span>Atharva Kanthi · Mumbai, India · <a href="mailto:atharvakanthi.study@gmail.com">atharvakanthi.study@gmail.com</a></span>
+  <span><a href="https://www.linkedin.com/in/atharva-kanthi/">LinkedIn</a> · <a href="https://github.com/Atharvakanthi">GitHub</a></span>
+</div></div></footer>
+<script src="../assets/vendor/anime.min.js"></script>
+<script src="../assets/vendor/chart.umd.js"></script>
+<script src="../assets/js/site.js"></script>
+
+<script>
+var S={
+ "mix": {
+  "LTR": {
+   "Apartment": 45.3,
+   "Other": 16.5,
+   "Villa": 37.3
+  },
+  "SALE": {
+   "Apartment": 2.0,
+   "Farmland": 8.3,
+   "Land": 38.8,
+   "Other": 1.7,
+   "Villa": 49.1
+  },
+  "STR": {
+   "Apartment": 17.0,
+   "Hotel": 35.0,
+   "Other": 3.0,
+   "Villa": 44.9
+  }
+ },
+ "channel_share": {
+  "STR": 56.2,
+  "SALE": 25.3,
+  "LTR": 18.5
+ },
+ "beds": {
+  "LTR": {
+   "0": 0.0,
+   "1": 5.8,
+   "2": 30.1,
+   "3": 39.8,
+   "4": 13.1,
+   "5": 11.2
+  },
+  "SALE": {
+   "0": 4.0,
+   "1": 8.0,
+   "2": 16.6,
+   "3": 36.4,
+   "4": 19.8,
+   "5": 15.1
+  },
+  "STR": {
+   "0": 1.0,
+   "1": 52.5,
+   "2": 18.8,
+   "3": 13.3,
+   "4": 6.5,
+   "5": 7.9
+  }
+ },
+ "land": [
+  {
+   "district": "Matara",
+   "median_lkr_per_perch": 325000.0,
+   "index": 213
+  },
+  {
+   "district": "Galle",
+   "median_lkr_per_perch": 294000.0,
+   "index": 193
+  },
+  {
+   "district": "Colombo",
+   "median_lkr_per_perch": 264000.0,
+   "index": 174
+  },
+  {
+   "district": "Hambantota",
+   "median_lkr_per_perch": 84000.0,
+   "index": 56
+  },
+  {
+   "district": "Gampaha",
+   "median_lkr_per_perch": 68000.0,
+   "index": 44
+  },
+  {
+   "district": "Ratnapura",
+   "median_lkr_per_perch": 50000.0,
+   "index": 33
+  },
+  {
+   "district": "Kalutara",
+   "median_lkr_per_perch": 46000.0,
+   "index": 30
+  },
+  {
+   "district": "Kandy",
+   "median_lkr_per_perch": 42000.0,
+   "index": 28
+  },
+  {
+   "district": "Kurunegala",
+   "median_lkr_per_perch": 33000.0,
+   "index": 22
+  },
+  {
+   "district": "Puttalam",
+   "median_lkr_per_perch": 25000.0,
+   "index": 16
+  }
+ ],
+ "land_nat": 152000.0,
+ "rent": [
+  {
+   "district": "Colombo",
+   "median_lkr_month": 350000.0,
+   "index": 117
+  },
+  {
+   "district": "Galle",
+   "median_lkr_month": 210000.0,
+   "index": 70
+  },
+  {
+   "district": "Gampaha",
+   "median_lkr_month": 50000.0,
+   "index": 17
+  },
+  {
+   "district": "Kalutara",
+   "median_lkr_month": 46000.0,
+   "index": 16
+  },
+  {
+   "district": "Kandy",
+   "median_lkr_month": 40000.0,
+   "index": 13
+  }
+ ],
+ "rent_nat": 300000.0,
+ "yield": [
+  {
+   "district": "Colombo",
+   "gross_yield_pct": 17.5
+  },
+  {
+   "district": "Galle",
+   "gross_yield_pct": 14.8
+  },
+  {
+   "district": "Gampaha",
+   "gross_yield_pct": 4.3
+  },
+  {
+   "district": "Kalutara",
+   "gross_yield_pct": 4.0
+  },
+  {
+   "district": "Kandy",
+   "gross_yield_pct": 2.7
+  }
+ ],
+ "sale_n_ok": [
+  "Colombo",
+  "Galle",
+  "Gampaha",
+  "Hambantota",
+  "Kalutara",
+  "Kandy",
+  "Kegalle",
+  "Kurunegala",
+  "Matale",
+  "Matara",
+  "Ratnapura"
+ ],
+ "str": [
+  {
+   "district": "Trincomalee",
+   "median_lkr_night": 26200.0,
+   "index": 171,
+   "avg_occ_pct": 25
+  },
+  {
+   "district": "Nuwara Eliya",
+   "median_lkr_night": 23300.0,
+   "index": 151,
+   "avg_occ_pct": 12
+  },
+  {
+   "district": "Moneragala",
+   "median_lkr_night": 23000.0,
+   "index": 149,
+   "avg_occ_pct": 10
+  },
+  {
+   "district": "Puttalam",
+   "median_lkr_night": 21000.0,
+   "index": 136,
+   "avg_occ_pct": 8
+  },
+  {
+   "district": "Kegalle",
+   "median_lkr_night": 19500.0,
+   "index": 127,
+   "avg_occ_pct": 6
+  },
+  {
+   "district": "Badulla",
+   "median_lkr_night": 19300.0,
+   "index": 125,
+   "avg_occ_pct": 15
+  },
+  {
+   "district": "Ratnapura",
+   "median_lkr_night": 19200.0,
+   "index": 125,
+   "avg_occ_pct": 7
+  },
+  {
+   "district": "Matale",
+   "median_lkr_night": 19000.0,
+   "index": 123,
+   "avg_occ_pct": 5
+  },
+  {
+   "district": "Ampara",
+   "median_lkr_night": 18800.0,
+   "index": 122,
+   "avg_occ_pct": 20
+  },
+  {
+   "district": "Hambantota",
+   "median_lkr_night": 16700.0,
+   "index": 108,
+   "avg_occ_pct": 6
+  },
+  {
+   "district": "Batticaloa",
+   "median_lkr_night": 15800.0,
+   "index": 103,
+   "avg_occ_pct": 16
+  },
+  {
+   "district": "Jaffna",
+   "median_lkr_night": 15700.0,
+   "index": 102,
+   "avg_occ_pct": 15
+  },
+  {
+   "district": "Colombo",
+   "median_lkr_night": 15300.0,
+   "index": 99,
+   "avg_occ_pct": 10
+  },
+  {
+   "district": "Anuradhapura",
+   "median_lkr_night": 14500.0,
+   "index": 94,
+   "avg_occ_pct": 8
+  },
+  {
+   "district": "Galle",
+   "median_lkr_night": 14000.0,
+   "index": 91,
+   "avg_occ_pct": 9
+  },
+  {
+   "district": "Kandy",
+   "median_lkr_night": 13700.0,
+   "index": 89,
+   "avg_occ_pct": 8
+  },
+  {
+   "district": "Kalutara",
+   "median_lkr_night": 13500.0,
+   "index": 88,
+   "avg_occ_pct": 3
+  },
+  {
+   "district": "Gampaha",
+   "median_lkr_night": 12800.0,
+   "index": 83,
+   "avg_occ_pct": 11
+  },
+  {
+   "district": "Kurunegala",
+   "median_lkr_night": 12500.0,
+   "index": 81,
+   "avg_occ_pct": 4
+  },
+  {
+   "district": "Matara",
+   "median_lkr_night": 12200.0,
+   "index": 79,
+   "avg_occ_pct": 8
+  },
+  {
+   "district": "Polonnaruwa",
+   "median_lkr_night": 11900.0,
+   "index": 77,
+   "avg_occ_pct": 16
+  }
+ ],
+ "str_nat": 15400.0,
+ "occ_bands": {
+  "0%": 56.9,
+  "76-100%": 19.4,
+  "1-25%": 14.7,
+  "26-50%": 6.1,
+  "51-75%": 2.8
+ },
+ "str_dist_share": {
+  "Galle": 26.0,
+  "Matara": 17.8,
+  "Colombo": 13.3,
+  "Kandy": 8.8,
+  "Gampaha": 7.3,
+  "Badulla": 5.4,
+  "Kalutara": 4.0,
+  "Nuwara Eliya": 3.7
+ },
+ "dist_share": {
+  "SALE": {
+   "Colombo": 45.0,
+   "Gampaha": 20.9,
+   "Kalutara": 5.7,
+   "Galle": 5.2,
+   "Kurunegala": 4.9,
+   "Matara": 4.2,
+   "Kandy": 4.2,
+   "Hambantota": 2.4
+  },
+  "LTR": {
+   "Colombo": 89.3,
+   "Gampaha": 6.3,
+   "Kandy": 1.6,
+   "Galle": 1.0,
+   "Kalutara": 0.8,
+   "Matara": 0.2,
+   "Kurunegala": 0.1,
+   "Matale": 0.1
+  },
+  "STR": {
+   "Galle": 26.0,
+   "Matara": 17.8,
+   "Colombo": 13.3,
+   "Kandy": 8.8,
+   "Gampaha": 7.3,
+   "Badulla": 5.4,
+   "Kalutara": 4.0,
+   "Nuwara Eliya": 3.7
+  }
+ }
+};
+(function(){
+  var ch={},cur='STR',names={SALE:'Sale',LTR:'Long-term rent',STR:'Short-term rental'};
+  function $(s){return document.querySelector(s)}
+  function mk(id,cfg){if(ch[id])ch[id].destroy();ch[id]=new Chart(document.getElementById(id),cfg)}
+  var pc=function(v){return v+'%'};
+  function hb(c,labels,vals,color,ref){return{type:'bar',data:{labels:labels,datasets:[{data:vals,backgroundColor:color,borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:c.line}},y:{grid:{display:false}}}}}}
+  function render(){
+    var c=SITE.colors();SITE.chartDefaults();
+    var ck=Object.keys(S.channel_share),cl=ck.map(function(k){return names[k]});
+    mk('c_chan',{type:'doughnut',data:{labels:cl,datasets:[{data:ck.map(function(k){return S.channel_share[k]}),backgroundColor:[c.accent,c.blue,c.green],borderColor:c.surface,borderWidth:3}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right'},tooltip:{callbacks:{label:function(x){return x.label+': '+x.parsed+'%'}}}}}});
+    $('#r_chan').textContent='Short-term rental is '+S.channel_share.STR+'% of observed listings, more than sale and long-term rent combined.';
+    var types=['Apartment','Villa','Land','Farmland','Hotel','Other'],tc=[c.blue,c.accent,c.green,c.violet,c.red,c.muted];
+    mk('c_mix',{type:'bar',data:{labels:Object.keys(S.mix).map(function(k){return names[k]}),datasets:types.map(function(t,i){return{label:t,data:Object.keys(S.mix).map(function(k){return S.mix[k][t]||0}),backgroundColor:tc[i]}})},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:function(x){return x.dataset.label+': '+x.parsed.x+'%'}}}},scales:{x:{stacked:true,max:100,grid:{color:c.line},ticks:{callback:pc}},y:{stacked:true,grid:{display:false}}}}});
+    $('#r_mix').textContent='For sale, land and villas dominate. Short stays lean to villas and hotels. Apartments are mostly a rental product.';
+    var L=S.land;mk('c_land',hb(c,L.map(function(d){return d.district}),L.map(function(d){return d.index}),c.green));
+    $('#r_land').textContent=L[0].district+' is the priciest land at an index of '+L[0].index+'; '+L[L.length-1].district+' is the cheapest at '+L[L.length-1].index+'. The gap is about '+(L[0].index/L[L.length-1].index).toFixed(0)+' times.';
+    var R=S.rent;mk('c_rent',hb(c,R.map(function(d){return d.district}),R.map(function(d){return d.index}),c.blue));
+    $('#r_rent').textContent='Rents in '+R[0].district+' sit far above every other district shown; rental is effectively a Colombo market.';
+    var T=S.str.slice(0,10);mk('c_str',{type:'bar',data:{labels:T.map(function(d){return d.district}),datasets:[{label:'Rate index',data:T.map(function(d){return d.index}),backgroundColor:c.accent,borderRadius:5},{label:'Avg occupancy (%)',data:T.map(function(d){return d.avg_occ_pct}),backgroundColor:c.blue,borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{color:c.line}},y:{grid:{display:false}}}}});
+    $('#r_str').textContent='The highest nightly rates ('+T[0].district+', '+T[1].district+') come with low average occupancy. Rate alone overstates earnings.';
+    var ob=Object.keys(S.occ_bands);mk('c_occ',{type:'bar',data:{labels:ob,datasets:[{data:ob.map(function(k){return S.occ_bands[k]}),backgroundColor:[c.red,c.muted,c.blue,c.green,c.accent],borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(x){return x.parsed.y+'%'}}}},scales:{x:{grid:{display:false}},y:{grid:{color:c.line},ticks:{callback:pc}}}}});
+    $('#r_occ').textContent=S.occ_bands['0%']+'% of short-stay listings show no occupancy at all, while '+S.occ_bands['76-100%']+'% are almost full. The market is a few busy listings and a long tail.';
+    var dt=$('#dtabs');dt.innerHTML='';Object.keys(S.dist_share).forEach(function(k){var b=document.createElement('button');b.type='button';b.className='pill'+(k===cur?' on':'');b.textContent=names[k];b.onclick=function(){cur=k;render()};dt.appendChild(b)});
+    var D=S.dist_share[cur],dk=Object.keys(D);mk('c_dist',hb(c,dk,dk.map(function(k){return D[k]}),c.violet));
+    var bk=['0','1','2','3','4','5'],bl=['Studio','1','2','3','4','5+'],ks=Object.keys(S.beds);
+    mk('c_bed',{type:'bar',data:{labels:bl,datasets:ks.map(function(k,i){return{label:names[k],data:bk.map(function(b){return S.beds[k][b]}),backgroundColor:[c.blue,c.green,c.accent][i],borderRadius:4}})},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:function(x){return x.dataset.label+': '+x.parsed.y+'%'}}}},scales:{x:{grid:{display:false}},y:{grid:{color:c.line},ticks:{callback:pc}}}}});
+    $('#r_bed').textContent='Short stays are mostly one-bedroom units ('+S.beds.STR['1']+'%). Sale and rent listings centre on three bedrooms.';
+  }
+  render();SITE.onTheme(render);
+})();
+</script>
+</body>
+</html>
