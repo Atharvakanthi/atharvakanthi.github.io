@@ -49,7 +49,7 @@
   /* ---------- Reveal on scroll ---------- */
   function reveal(el,i){
     if(!A||reduce){el.style.opacity=1;return}
-    A.animate(el,{opacity:[0,1],translateY:[28,0],duration:800,delay:i||0,ease:'outCubic'});
+    A.animate(el,{opacity:[0,1],translateY:[10,0],duration:520,delay:i||0,ease:'outCubic'});
   }
   function initReveal(){
     var els=$$('[data-reveal]');
@@ -218,4 +218,20 @@
     initHero();initReveal();initCounters();initDraw();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+
+/* ---------- Hero moment + scroll-synced motion (anime.js) ---------- */
+(function(){
+  var A=window.anime,reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var h=document.querySelector('.hero h1');
+  if(!h||!A||reduce)return;
+  var words=h.textContent.trim().split(/\s+/);
+  h.innerHTML=words.map(function(w){return '<span class="hw"><span>'+w+'</span></span>'}).join(' ');
+  A.animate(h.querySelectorAll('.hw>span'),{translateY:['105%','0%'],duration:900,delay:A.stagger(70,{start:150}),ease:'outExpo'});
+  try{
+    var hero=document.querySelector('.hero');
+    A.animate(h,{translateY:[0,-70],opacity:[1,.15],ease:'linear',autoplay:A.onScroll({target:hero,enter:'top top',leave:'bottom top',sync:true})});
+    var r=document.querySelector('#radar');
+    if(r)A.animate(r,{scale:[.9,1],opacity:[.35,1],ease:'linear',autoplay:A.onScroll({target:r,enter:'bottom top+=100%',leave:'center center',sync:true})});
+  }catch(e){}
 })();
