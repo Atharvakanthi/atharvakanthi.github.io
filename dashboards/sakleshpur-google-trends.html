@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sakleshpur — Google Trends Time Series Analysis</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6; /* blue */
+    --series-2:       #eb6834; /* orange */
+    --series-3:       #1baf7a; /* aqua */
+    --series-4:       #eda100; /* yellow */
+    --series-5:       #e87ba4; /* magenta */
+    --series-6:       #008300; /* green */
+    --series-7:       #4a3aa7; /* violet */
+    --series-8:       #e34948; /* red */
+    --good:           #006300;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background: var(--page-plane); font-family: system-ui,-apple-system,"Segoe UI",sans-serif; color: var(--text-primary); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.page { margin-bottom: 28px; }
+  header.page h1 { font-size: 26px; margin: 0 0 6px; }
+  header.page p { color: var(--text-secondary); margin: 0; font-size: 14px; line-height: 1.5; }
+  .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px; margin-bottom: 20px; }
+  .card h2 { font-size: 16px; margin: 0 0 4px; }
+  .card .sub { color: var(--text-secondary); font-size: 13px; margin: 0 0 16px; line-height:1.5; }
+  .stat-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; }
+  .stat-tile { flex: 1 1 200px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .stat-tile .label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+  .stat-tile .value { font-size: 24px; font-weight: 600; }
+  .stat-tile .delta { font-size: 12px; margin-top: 4px; }
+  .delta.up { color: var(--good); }
+  .delta.down { color: var(--series-8); }
+  svg { display:block; width:100%; height:auto; overflow: visible; }
+  .axis text { fill: var(--text-muted); font-size: 11px; }
+  .grid line { stroke: var(--gridline); stroke-width: 1; }
+  .baseline { stroke: var(--baseline); stroke-width: 1; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; margin-bottom: 14px; font-size: 12px; color: var(--text-secondary); }
+  .legend .item { display:flex; align-items:center; gap:6px; }
+  .legend .swatch { width:10px; height:10px; border-radius:2px; display:inline-block; }
+  table.data-table { width:100%; border-collapse: collapse; font-size: 13px; }
+  table.data-table th, table.data-table td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--gridline); }
+  table.data-table th:first-child, table.data-table td:first-child { text-align: left; }
+  table.data-table th { color: var(--text-muted); font-weight: 500; font-size: 12px; }
+  .tooltip { position: absolute; pointer-events:none; background: var(--text-primary); color: #fff; font-size: 12px; padding: 6px 9px; border-radius: 6px; opacity: 0; transition: opacity .1s; white-space: nowrap; z-index: 10; }
+  .chart-holder { position: relative; }
+  .note { font-size: 12px; color: var(--text-muted); margin-top: 10px; line-height:1.5; }
+  .callout { background: rgba(227,73,72,0.06); border: 1px solid rgba(227,73,72,0.25); border-radius: 10px; padding: 12px 16px; font-size: 13px; line-height: 1.6; color: var(--text-primary); margin-bottom: 16px; }
+  .callout strong { color: var(--series-8); }
+  .findings { font-size: 14px; line-height: 1.7; color: var(--text-primary); }
+  .findings ul { margin: 8px 0; padding-left: 20px; }
+  .findings li { margin-bottom: 6px; }
+  footer { color: var(--text-muted); font-size: 12px; margin-top: 30px; }
+</style>
+</head>
+<body>
+<div style="font:13px -apple-system,Segoe UI,Roboto,Arial,sans-serif;padding:8px 28px;background:#1F3A5F"><a href="../index.html#dashboards" style="color:#fff;text-decoration:none">← Atharva Kanthi · Portfolio</a></div>
+<div class="viz-root">
+<div class="wrap">
+
+  <header class="page">
+    <h1>Sakleshpur — Google Trends Time Series Analysis</h1>
+    <p>India search interest, Aug 2021 – Aug 2026 (61 months) · tourism/hospitality data rescaled across 8 exports onto a common index, plus a real-estate/investment keyword sweep with Coorg benchmark</p>
+  </header>
+
+  <div class="stat-row" id="statRow"></div>
+
+  <div class="card">
+    <h2>Search interest over time</h2>
+    <p class="sub">Monthly index (rescaled, 0–100 relative scale) with 12-month centered rolling trend</p>
+    <div class="chart-holder">
+      <svg id="trendChart" viewBox="0 0 960 340"></svg>
+      <div class="tooltip" id="trendTooltip"></div>
+    </div>
+    <div class="legend">
+      <span class="item"><span class="swatch" style="background:var(--series-1)"></span>Monthly interest</span>
+      <span class="item"><span class="swatch" style="background:var(--series-2)"></span>12-month trend</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Seasonality — monthly index (2022–2025 average)</h2>
+    <p class="sub">100 = average month. Bars above 100 = above-average search interest for that calendar month.</p>
+    <div class="chart-holder">
+      <svg id="seasonalChart" viewBox="0 0 960 300"></svg>
+      <div class="tooltip" id="seasonalTooltip"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Year-over-year average interest</h2>
+    <p class="sub">Calendar-year mean of the monthly index (2026 is partial — through August)</p>
+    <div class="chart-holder">
+      <svg id="yearChart" viewBox="0 0 960 260"></svg>
+      <div class="tooltip" id="yearTooltip"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Related-query momentum — last 12 months vs. prior 12 months</h2>
+    <p class="sub">Grouped by relevance to the real-estate/hospitality thesis. Values are on each query's own rescaled index (not comparable across groups).</p>
+    <div id="groupTables"></div>
+    <p class="note">Note: several "competing destination" queries (Mysore, Mangalore, Hassan) are large regional hubs with search volumes far above Sakleshpur's — shown on their own raw scale as context, not for direct index comparison.</p>
+  </div>
+
+  <div class="card">
+    <h2>Real estate &amp; investment search interest</h2>
+    <p class="sub">20 Sakleshpur real-estate/investment keywords + 5 Coorg benchmark keywords, India, same 61-month window. Bars show how many of the 61 months had any measurable search volume at all.</p>
+    <div class="callout" id="reCallout"></div>
+    <div class="chart-holder">
+      <svg id="reChart" viewBox="0 0 960 490"></svg>
+      <div class="tooltip" id="reTooltip"></div>
+    </div>
+    <div class="legend">
+      <span class="item"><span class="swatch" style="background:var(--series-2)"></span>Sakleshpur real-estate terms</span>
+      <span class="item"><span class="swatch" style="background:var(--series-7)"></span>Coorg benchmark (non-Sakleshpur)</span>
+    </div>
+    <p class="note">"Nonzero months" counts any month with index &gt; 0, on that keyword's own scale — not a magnitude comparison across keywords. Full monthly series for every keyword are in the companion workbook (RE_Raw_Data / RE_Summary tabs).</p>
+  </div>
+
+  <div class="card">
+    <h2>Key findings</h2>
+    <div class="findings" id="findingsBox"></div>
+  </div>
+
+  <footer>Sources: Google Trends (region: India). Tourism/hospitality data: 8 exports covering Aug 2021 – Aug 2026, stitched onto a common index via the "Sakleshpur" anchor term. Real-estate/investment data: 5 additional exports pulled Aug 2026, aggregated weekly→monthly. Analysis by Atharva Kanthi.</footer>
+</div>
+</div>
+
+<script>
+const DATA = {"dates": ["2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08"], "sakleshpur": [66.0, 66.0, 65.0, 55.0, 70.0, 37.0, 50.0, 49.0, 75.0, 80.0, 67.0, 68.0, 55.0, 55.0, 63.0, 53.0, 77.0, 48.0, 46.0, 45.0, 75.0, 74.0, 86.0, 100.0, 67.0, 63.0, 65.0, 60.0, 90.0, 69.0, 48.0, 57.0, 68.0, 96.0, 94.0, 98.0, 55.0, 56.0, 71.0, 61.0, 75.0, 45.0, 40.0, 52.0, 64.0, 67.0, 74.0, 74.0, 64.0, 59.0, 63.0, 65.0, 72.0, 54.0, 43.0, 56.0, 66.0, 82.0, 93.0, 85.0, 86.0], "trend": [null, null, null, null, null, null, 62.3, 61.4, 60.5, 60.3, 60.2, 60.8, 61.7, 61.3, 61.0, 61.0, 60.5, 62.1, 64.8, 65.8, 66.4, 66.6, 67.2, 68.2, 70.0, 70.2, 71.2, 70.6, 72.4, 73.1, 72.9, 71.9, 71.3, 71.8, 71.9, 70.7, 68.7, 68.0, 67.6, 67.2, 64.8, 63.2, 61.2, 61.9, 62.2, 61.5, 61.8, 61.6, 62.3, 62.6, 62.9, 63.1, 64.3, 65.9, 66.8, 68.7, null, null, null, null, null], "seasonal_months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], "seasonal_index": [76.2, 70.4, 77.7, 107.9, 121.3, 122.9, 130.1, 92.2, 89.2, 100.3, 91.5, 120.2], "years": ["2021", "2022", "2023", "2024", "2025", "2026"], "yearly_avg": [64.4, 60.8, 68.2, 70.7, 61.6, 70.6], "yearly_count": [5, 12, 12, 12, 12, 8], "groups": {"Accommodation demand": {"keywords": ["resorts in sakleshpur", "sakleshpur homestay", "stay in sakleshpur", "sakleshpur best resorts", "sakleshpur hotels", "resort sakleshpur", "sakleshpur resorts", "sakleshpur stay"], "last12": [4.61, 4.61, 1.42, 1.5, 1.33, 13.67, 9.33, 2.95], "prior12": [5.07, 3.85, 1.58, 1.58, 1.17, 10.92, 9.42, 0.62]}, "Access / commute": {"keywords": ["sakleshpur to bangalore", "bangalore to sakleshpur", "sakleshpur distance"], "last12": [5.67, 5.67, 6.67], "prior12": [6.25, 6.25, 7.08]}, "Tourism / attractions": {"keywords": ["sakleshpur places", "sakleshpur falls", "sakleshpur weather", "sakleshpur temple"], "last12": [5.33, 1.0, 3.88, 1.5], "prior12": [6.42, 1.25, 3.85, 1.42]}, "Competing destinations (raw, own scale)": {"keywords": ["chikmagalur", "coorg", "mangalore", "hassan"], "last12": [170.63, 345.86, 848.92, 388.31], "prior12": [186.07, 373.23, 916.52, 371.69]}}, "re_summary": [{"keyword": "sakleshpur land for sale", "group": "sakleshpur", "overall_avg": 0.0, "max": 0.0, "nonzero_months": 0, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "sakleshpur plots", "group": "sakleshpur", "overall_avg": 0.004, "max": 0.25, "nonzero_months": 1, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "land in sakleshpur", "group": "sakleshpur", "overall_avg": 0.004, "max": 0.25, "nonzero_months": 1, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "plots in sakleshpur", "group": "sakleshpur", "overall_avg": 0.008, "max": 0.25, "nonzero_months": 2, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "sakleshpur farmland", "group": "sakleshpur", "overall_avg": 0.004, "max": 0.25, "nonzero_months": 1, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "coffee estate for sale sakleshpur", "group": "sakleshpur", "overall_avg": 0.0, "max": 0.0, "nonzero_months": 0, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "sakleshpur coffee estate", "group": "sakleshpur", "overall_avg": 0.011, "max": 0.25, "nonzero_months": 3, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "estate for sale sakleshpur", "group": "sakleshpur", "overall_avg": 0.008, "max": 0.25, "nonzero_months": 2, "last12_avg": 0.042, "prior12_avg": 0.0}, {"keyword": "second home sakleshpur", "group": "sakleshpur", "overall_avg": 0.0, "max": 0.0, "nonzero_months": 0, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "vacation home sakleshpur", "group": "sakleshpur", "overall_avg": 0.0, "max": 0.0, "nonzero_months": 0, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "sakleshpur villa", "group": "sakleshpur", "overall_avg": 0.084, "max": 1.0, "nonzero_months": 15, "last12_avg": 0.238, "prior12_avg": 0.058}, {"keyword": "farmhouse for sale sakleshpur", "group": "sakleshpur", "overall_avg": 0.007, "max": 0.4, "nonzero_months": 1, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "sakleshpur property price", "group": "sakleshpur", "overall_avg": 0.0, "max": 0.0, "nonzero_months": 0, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "sakleshpur land price", "group": "sakleshpur", "overall_avg": 0.016, "max": 0.5, "nonzero_months": 3, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "sakleshpur real estate", "group": "sakleshpur", "overall_avg": 0.0, "max": 0.0, "nonzero_months": 0, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "sakleshpur property", "group": "sakleshpur", "overall_avg": 0.007, "max": 0.25, "nonzero_months": 2, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "coorg land for sale", "group": "coorg", "overall_avg": 0.27, "max": 11.0, "nonzero_months": 2, "last12_avg": 0.458, "prior12_avg": 0.0}, {"keyword": "coorg farmland", "group": "coorg", "overall_avg": 0.25, "max": 15.25, "nonzero_months": 1, "last12_avg": 0.0, "prior12_avg": 0.0}, {"keyword": "coorg property price", "group": "coorg", "overall_avg": 0.594, "max": 19.25, "nonzero_months": 2, "last12_avg": 3.021, "prior12_avg": 0.0}, {"keyword": "coorg homestay for sale", "group": "coorg", "overall_avg": 0.449, "max": 15.0, "nonzero_months": 2, "last12_avg": 1.033, "prior12_avg": 1.25}, {"keyword": "coorg real estate", "group": "coorg", "overall_avg": 0.593, "max": 20.0, "nonzero_months": 3, "last12_avg": 0.167, "prior12_avg": 1.183}], "re_dates": ["2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08"], "re_villa_series": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.2, 0.0, 0.25, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.25, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.6, 0.75, 0.25, 1.0]};
+
+function fmtMonth(ym){
+  const [y,m] = ym.split('-');
+  const names=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return names[parseInt(m,10)-1] + " '" + y.slice(2);
+}
+
+// ---------- Stat tiles ----------
+(function(){
+  const sak = DATA.sakleshpur;
+  const max = Math.max(...sak), min = Math.min(...sak);
+  const maxIdx = sak.indexOf(max), minIdx = sak.indexOf(min);
+  const last12 = sak.slice(-12), prior12 = sak.slice(-24,-12);
+  const avg = arr => arr.reduce((a,b)=>a+b,0)/arr.length;
+  const last12avg = avg(last12), prior12avg = avg(prior12);
+  const momentum = ((last12avg/prior12avg - 1) * 100).toFixed(1);
+  const y2026 = DATA.yearly_avg[DATA.years.indexOf('2026')];
+  const y2025 = DATA.yearly_avg[DATA.years.indexOf('2025')];
+  const yoy2026 = ((y2026/y2025 - 1)*100).toFixed(1);
+
+  const tiles = [
+    {label:'Peak month', value: fmtMonth(DATA.dates[maxIdx]), delta:`index ${max}`, cls:''},
+    {label:'Lowest month', value: fmtMonth(DATA.dates[minIdx]), delta:`index ${min}`, cls:''},
+    {label:'Last 12mo vs prior 12mo', value: (momentum>0?'+':'')+momentum+'%', delta:`${last12avg.toFixed(1)} vs ${prior12avg.toFixed(1)} avg`, cls: momentum>0?'up':'down'},
+    {label:'2026 YTD vs 2025 (full yr)', value: (yoy2026>0?'+':'')+yoy2026+'%', delta:`${y2026.toFixed(1)} vs ${y2025.toFixed(1)} avg`, cls: yoy2026>0?'up':'down'},
+  ];
+  const row = document.getElementById('statRow');
+  row.innerHTML = tiles.map(t=>`
+    <div class="stat-tile">
+      <div class="label">${t.label}</div>
+      <div class="value">${t.value}</div>
+      <div class="delta ${t.cls}">${t.delta}</div>
+    </div>`).join('');
+})();
+
+// ---------- Trend line chart ----------
+(function(){
+  const svg = document.getElementById('trendChart');
+  const tooltip = document.getElementById('trendTooltip');
+  const W=960,H=340, padL=40, padR=16, padT=16, padB=36;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  const dates = DATA.dates, sak = DATA.sakleshpur, trend = DATA.trend;
+  const n = dates.length;
+  const yMax = 105, yMin = 0;
+  const x = i => padL + (i/(n-1))*plotW;
+  const y = v => padT + plotH - ((v-yMin)/(yMax-yMin))*plotH;
+
+  let svgContent = '';
+  // gridlines
+  for(let gv=0; gv<=100; gv+=25){
+    svgContent += `<line class="grid" x1="${padL}" x2="${W-padR}" y1="${y(gv)}" y2="${y(gv)}"/>`;
+    svgContent += `<text class="axis" x="${padL-8}" y="${y(gv)+4}" text-anchor="end">${gv}</text>`;
+  }
+  // x axis labels (every 6 months)
+  for(let i=0;i<n;i+=6){
+    svgContent += `<text class="axis" x="${x(i)}" y="${H-padB+18}" text-anchor="middle">${fmtMonth(dates[i])}</text>`;
+  }
+  svgContent += `<line class="baseline" x1="${padL}" x2="${W-padR}" y1="${y(0)}" y2="${y(0)}"/>`;
+
+  // monthly line (thin)
+  let pathSak = '';
+  sak.forEach((v,i)=>{ pathSak += (i===0?'M':'L') + x(i).toFixed(1)+','+y(v).toFixed(1)+' '; });
+  svgContent += `<path d="${pathSak}" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+
+  // trend line (dashed thicker, skip nulls)
+  let segs = [];
+  let cur = null;
+  trend.forEach((v,i)=>{
+    if(v===null){ if(cur){segs.push(cur); cur=null;} return; }
+    if(!cur) cur = 'M'+x(i).toFixed(1)+','+y(v).toFixed(1)+' ';
+    else cur += 'L'+x(i).toFixed(1)+','+y(v).toFixed(1)+' ';
+  });
+  if(cur) segs.push(cur);
+  segs.forEach(seg=>{
+    svgContent += `<path d="${seg}" fill="none" stroke="var(--series-2)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+
+  // invisible hover targets
+  sak.forEach((v,i)=>{
+    svgContent += `<circle data-i="${i}" cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="9" fill="transparent" class="hoverpt"/>`;
+  });
+
+  svg.innerHTML = svgContent;
+
+  svg.querySelectorAll('.hoverpt').forEach(c=>{
+    c.addEventListener('mouseenter', (e)=>{
+      const i = +c.getAttribute('data-i');
+      const rect = svg.getBoundingClientRect();
+      const scaleX = rect.width / W, scaleY = rect.height / H;
+      const cx = +c.getAttribute('cx') * scaleX;
+      const cy = +c.getAttribute('cy') * scaleY;
+      tooltip.style.opacity = 1;
+      tooltip.style.left = cx + 'px';
+      tooltip.style.top = (cy - 34) + 'px';
+      tooltip.innerHTML = `<strong>${fmtMonth(dates[i])}</strong><br>Interest: ${sak[i]}${trend[i]!==null?'<br>Trend: '+trend[i]:''}`;
+    });
+    c.addEventListener('mouseleave', ()=>{ tooltip.style.opacity = 0; });
+  });
+})();
+
+// ---------- Seasonal bar chart ----------
+(function(){
+  const svg = document.getElementById('seasonalChart');
+  const tooltip = document.getElementById('seasonalTooltip');
+  const W=960,H=300, padL=40, padR=16, padT=16, padB=36;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  const months = DATA.seasonal_months, vals = DATA.seasonal_index;
+  const n = months.length;
+  const yMax = Math.max(...vals)*1.15, yMin=0;
+  const barW = plotW/n * 0.6;
+  const x = i => padL + (i+0.5)/n*plotW;
+  const y = v => padT + plotH - ((v-yMin)/(yMax-yMin))*plotH;
+  const y100 = y(100);
+
+  let s = '';
+  for(let gv=0; gv<=Math.ceil(yMax/25)*25; gv+=25){
+    s += `<line class="grid" x1="${padL}" x2="${W-padR}" y1="${y(gv)}" y2="${y(gv)}"/>`;
+    s += `<text class="axis" x="${padL-8}" y="${y(gv)+4}" text-anchor="end">${gv}</text>`;
+  }
+  // 100 reference line
+  s += `<line x1="${padL}" x2="${W-padR}" y1="${y100}" y2="${y100}" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4,3"/>`;
+
+  vals.forEach((v,i)=>{
+    const bx = x(i)-barW/2;
+    const by = Math.min(y(v), y100);
+    const bh = Math.abs(y(v)-y100);
+    const color = v>=100 ? 'var(--series-3)' : 'var(--series-4)';
+    s += `<rect data-i="${i}" x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(bh,1).toFixed(1)}" rx="3" fill="${color}"/>`;
+    const labelY = v>=100 ? by - 6 : by + bh + 14;
+    s += `<text x="${x(i).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" style="fill:var(--text-primary);font-size:11px;font-weight:600">${v}</text>`;
+    s += `<text class="axis" x="${x(i).toFixed(1)}" y="${H-padB+18}" text-anchor="middle">${months[i]}</text>`;
+  });
+
+  svg.innerHTML = s;
+  svg.querySelectorAll('rect[data-i]').forEach(r=>{
+    r.addEventListener('mouseenter', ()=>{
+      const i = +r.getAttribute('data-i');
+      const rect = svg.getBoundingClientRect();
+      const scaleX = rect.width/W, scaleY = rect.height/H;
+      const cx = (+r.getAttribute('x') + barW/2) * scaleX;
+      const cy = +r.getAttribute('y') * scaleY;
+      tooltip.style.opacity = 1;
+      tooltip.style.left = cx+'px';
+      tooltip.style.top = (cy-30)+'px';
+      tooltip.innerHTML = `<strong>${months[i]}</strong><br>Seasonal index: ${vals[i]}`;
+    });
+    r.addEventListener('mouseleave', ()=>{ tooltip.style.opacity=0; });
+  });
+})();
+
+// ---------- Yearly bar chart ----------
+(function(){
+  const svg = document.getElementById('yearChart');
+  const tooltip = document.getElementById('yearTooltip');
+  const W=960,H=260, padL=40, padR=16, padT=16, padB=36;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  const years = DATA.years, vals = DATA.yearly_avg, counts = DATA.yearly_count;
+  const n = years.length;
+  const yMax = Math.max(...vals)*1.15, yMin=0;
+  const barW = plotW/n * 0.5;
+  const x = i => padL + (i+0.5)/n*plotW;
+  const y = v => padT + plotH - ((v-yMin)/(yMax-yMin))*plotH;
+  const y0 = y(0);
+
+  let s = '';
+  for(let gv=0; gv<=yMax; gv+=20){
+    s += `<line class="grid" x1="${padL}" x2="${W-padR}" y1="${y(gv)}" y2="${y(gv)}"/>`;
+    s += `<text class="axis" x="${padL-8}" y="${y(gv)+4}" text-anchor="end">${gv}</text>`;
+  }
+  vals.forEach((v,i)=>{
+    const bx = x(i)-barW/2;
+    const by = y(v);
+    const bh = y0-y(v);
+    s += `<rect data-i="${i}" x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barW.toFixed(1)}" height="${bh.toFixed(1)}" rx="3" fill="var(--series-1)"/>`;
+    s += `<text class="axis" x="${x(i).toFixed(1)}" y="${by-8}" text-anchor="middle" style="fill:var(--text-primary);font-size:12px;font-weight:600">${v}${counts[i]<12?'*':''}</text>`;
+    s += `<text class="axis" x="${x(i).toFixed(1)}" y="${H-padB+18}" text-anchor="middle">${years[i]}</text>`;
+  });
+  svg.innerHTML = s;
+  svg.querySelectorAll('rect[data-i]').forEach(r=>{
+    r.addEventListener('mouseenter', ()=>{
+      const i = +r.getAttribute('data-i');
+      const rect = svg.getBoundingClientRect();
+      const scaleX = rect.width/W, scaleY = rect.height/H;
+      const cx = (+r.getAttribute('x') + barW/2) * scaleX;
+      const cy = +r.getAttribute('y') * scaleY;
+      tooltip.style.opacity = 1;
+      tooltip.style.left = cx+'px';
+      tooltip.style.top = (cy-30)+'px';
+      tooltip.innerHTML = `<strong>${years[i]}</strong><br>Avg index: ${vals[i]}${counts[i]<12?' (partial year, '+counts[i]+' mo)':''}`;
+    });
+    r.addEventListener('mouseleave', ()=>{ tooltip.style.opacity=0; });
+  });
+})();
+
+// ---------- Group momentum tables ----------
+(function(){
+  const container = document.getElementById('groupTables');
+  let html = '';
+  Object.entries(DATA.groups).forEach(([gname, g])=>{
+    html += `<h3 style="font-size:13px;margin:16px 0 8px;color:var(--text-primary)">${gname}</h3>`;
+    html += `<table class="data-table"><thead><tr><th>Query</th><th>Last 12mo avg</th><th>Prior 12mo avg</th><th>Change</th></tr></thead><tbody>`;
+    const rows = g.keywords.map((k,i)=>({k, last:g.last12[i], prior:g.prior12[i]}));
+    rows.sort((a,b)=> (b.last-b.prior) - (a.last-a.prior));
+    rows.forEach(r=>{
+      const pct = r.prior>0 ? ((r.last/r.prior-1)*100) : null;
+      const pctStr = pct===null ? '—' : (pct>0?'+':'')+pct.toFixed(1)+'%';
+      const cls = pct===null ? '' : (pct>0?'up':'down');
+      html += `<tr><td>${r.k}</td><td>${r.last}</td><td>${r.prior}</td><td class="delta ${cls}">${pctStr}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+  });
+  container.innerHTML = html;
+})();
+
+// ---------- Real estate chart ----------
+(function(){
+  const svg = document.getElementById('reChart');
+  const tooltip = document.getElementById('reTooltip');
+  const callout = document.getElementById('reCallout');
+  const rows = DATA.re_summary.slice().sort((a,b)=> b.nonzero_months - a.nonzero_months);
+
+  const totalKw = rows.length;
+  const sakZero = rows.filter(r=>r.group==='sakleshpur' && r.nonzero_months<=3).length;
+  const sakTotal = rows.filter(r=>r.group==='sakleshpur').length;
+  callout.innerHTML = `<strong>Near-zero search volume across the board.</strong> ${sakZero} of ${sakTotal} Sakleshpur real-estate/investment keywords returned 0–3 nonzero months out of 61. The Coorg benchmark (a larger, more established second-home market) shows the identical pattern — this rules out a Sakleshpur-specific gap. Google Trends cannot measure buyer-side purchase intent for this asset class; it is likely a broker/relationship-driven market rather than a search-driven one.`;
+
+  const W=960,H=490, padL=220, padR=50, padT=10, padB=42;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  const n = rows.length;
+  const rowH = plotH/n;
+  const xMax = 61;
+  const x = v => padL + (v/xMax)*plotW;
+
+  let s = '';
+  // gridlines (vertical, every 10 months)
+  for(let gv=0; gv<=xMax; gv+=10){
+    s += `<line class="grid" x1="${x(gv).toFixed(1)}" x2="${x(gv).toFixed(1)}" y1="${padT}" y2="${H-padB}"/>`;
+    s += `<text class="axis" x="${x(gv).toFixed(1)}" y="${H-padB+16}" text-anchor="middle">${gv}</text>`;
+  }
+  s += `<text class="axis" x="${padL+plotW/2}" y="${H-8}" text-anchor="middle">Months with any measurable search volume (out of 61)</text>`;
+
+  rows.forEach((r,i)=>{
+    const cy = padT + i*rowH + rowH/2;
+    const barH = Math.max(rowH*0.55, 6);
+    const bw = Math.max(x(r.nonzero_months)-padL, 2);
+    const color = r.group==='coorg' ? 'var(--series-7)' : 'var(--series-2)';
+    s += `<text class="axis" x="${padL-10}" y="${(cy+4).toFixed(1)}" text-anchor="end" style="font-size:11px">${r.keyword}</text>`;
+    s += `<rect data-i="${i}" x="${padL}" y="${(cy-barH/2).toFixed(1)}" width="${bw.toFixed(1)}" height="${barH.toFixed(1)}" rx="3" fill="${color}"/>`;
+    s += `<text x="${(padL+bw+6).toFixed(1)}" y="${(cy+4).toFixed(1)}" style="fill:var(--text-secondary);font-size:11px">${r.nonzero_months}</text>`;
+  });
+  svg.innerHTML = s;
+
+  svg.querySelectorAll('rect[data-i]').forEach(r=>{
+    r.addEventListener('mouseenter', ()=>{
+      const i = +r.getAttribute('data-i');
+      const d = rows[i];
+      const rect = svg.getBoundingClientRect();
+      const scaleX = rect.width/W, scaleY = rect.height/H;
+      const cx = (+r.getAttribute('x') + 40) * scaleX;
+      const cy = +r.getAttribute('y') * scaleY;
+      tooltip.style.opacity = 1;
+      tooltip.style.left = cx+'px';
+      tooltip.style.top = (cy-8)+'px';
+      tooltip.innerHTML = `<strong>${d.keyword}</strong><br>Nonzero months: ${d.nonzero_months}/61<br>Max index: ${d.max}<br>Last 12mo avg: ${d.last12_avg}`;
+    });
+    r.addEventListener('mouseleave', ()=>{ tooltip.style.opacity=0; });
+  });
+})();
+
+// ---------- Findings ----------
+(function(){
+  const box = document.getElementById('findingsBox');
+  box.innerHTML = `
+    <ul>
+      <li><strong>Structural uptrend with cyclicality.</strong> The 12-month rolling trend rose from ~60 (early 2022) to ~73 (early 2024), dipped to ~61 (early 2025), and has recovered to ~69 through mid-2026 — search interest in Sakleshpur is trending up over the 5-year window but moves in multi-year waves, not a straight line.</li>
+      <li><strong>Strong, consistent seasonality.</strong> April–July is the peak window (seasonal index 108–130, i.e. 8–30% above the average month) — this aligns with early-summer and pre-monsoon travel. December is a secondary peak (index 120, holiday season). February is the trough (index 70).</li>
+      <li><strong>2025 was a soft year, 2026 is rebounding.</strong> 2025 averaged 61.6, down 12.9% from 2024's 70.7 — the weakest full year since 2022. 2026 (through August) is already averaging 70.6, up 14.7% YoY, and the last 12 months are running 10.9% above the prior 12.</li>
+      <li><strong>Accommodation-intent queries are the fastest-growing segment.</strong> "sakleshpur stay" is up 376% (last 12mo vs prior 12mo, off a small base), "resort in sakleshpur" +37%, and both "resort sakleshpur"/"sakleshpur resort" +25% — accommodation-seeking queries are outgrowing generic tourism queries ("sakleshpur places" −17%, "sakleshpur falls" −20%), suggesting the mix of demand is shifting from day-trip/sightseeing intent toward overnight-stay intent.</li>
+      <li><strong>Route/commute queries are flat-to-declining</strong> (Bangalore–Sakleshpur distance/route terms down 6–9% YoY), which combined with rising accommodation intent is consistent with a maturing destination where repeat/returning visitors already know the route and are searching directly for places to stay.</li>
+      <li><strong>Resort-family queries are the best coincident indicator</strong> (r ≈ 0.80–0.85 with the "Sakleshpur" anchor term, same month) — not a leading indicator: lag-correlation testing shows the relationship collapses within ±1 month, so resort search tracks demand in real time rather than predicting it.</li>
+      <li><strong>Real-estate/investment demand is invisible to Google Trends.</strong> 16 of 20 Sakleshpur real-estate keywords (land, plots, farmland, coffee estate, second home, villa, property price) returned 0–3 nonzero months out of 61. The Coorg benchmark shows the same pattern for a bigger, more established market — this is a category-wide search-behavior gap, not a Sakleshpur weakness. Buyer-side demand in this market needs broker inquiry volume or lead data, not search trend data.</li>
+    </ul>
+  `;
+})();
+</script>
+</body>
+</html>

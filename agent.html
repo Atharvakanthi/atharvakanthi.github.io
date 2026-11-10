@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Analyst Agent · Atharva Kanthi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1F3A5F;--gold:#9C6B1A;--ink:#1B1F24;--muted:#5E6670;--line:#E3E6EA;--bg:#FAFAF8;--card:#fff;--chip:#EEF2F7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 Inter,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+a{color:var(--navy)}
+.bar{background:var(--navy);padding:10px 24px}
+.bar a{color:#fff;text-decoration:none;font-size:14px}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px}
+.eyebrow{color:var(--gold);font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin-top:48px}
+h1{font-family:"Source Serif 4",Georgia,serif;font-size:clamp(32px,5vw,44px);line-height:1.1;color:var(--navy);margin:8px 0 14px}
+h2{font-family:"Source Serif 4",Georgia,serif;font-size:24px;color:var(--navy);margin:44px 0 10px}
+.lede{font-size:18px;color:#343a42}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:26px 0}
+.kpis div{background:var(--card);padding:18px}
+.kpis b{display:block;font-family:"Source Serif 4",Georgia,serif;font-size:26px;color:var(--navy)}
+.kpis span{font-size:13px;color:var(--muted)}
+@media(max-width:600px){.kpis{grid-template-columns:1fr}}
+.diagram{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto}
+.diagram svg{display:block;width:100%;min-width:640px;height:auto}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);font-size:15px}
+th{background:var(--chip);color:var(--navy);text-align:left;padding:10px 12px}
+td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:600;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--chip);color:var(--navy);font-size:13px;padding:4px 10px;border-radius:999px}
+.note{font-size:14px;color:var(--muted);border-left:3px solid var(--gold);padding-left:12px;margin-top:20px}
+footer{margin:56px 0 40px;padding-top:20px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="bar"><a href="index.html#projects">← Atharva Kanthi · Portfolio</a></div>
+<div class="wrap">
+
+<div class="eyebrow">Case study · Multi-agent AI</div>
+<h1>Data Analyst Agent</h1>
+<p class="lede">A multi-agent framework I designed at Avacasa that turns a business enquiry into a finished, reviewed market report. Each stage of an analyst's job is handled by a specialist agent, and nothing ships until it has passed three full review rounds.</p>
+
+<div class="kpis">
+  <div><b>1 week → 2 days</b><span>report creation time</span></div>
+  <div><b>8 agents</b><span>from intake to design review</span></div>
+  <div><b>3 rounds</b><span>of full-read review before delivery</span></div>
+</div>
+
+<h2>How it works</h2>
+<div class="diagram">
+<svg viewBox="0 0 760 640" role="img" aria-label="Flow of the Data Analyst Agent from enquiry to final report">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5E6670"/></marker>
+    <marker id="r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B5462F"/></marker>
+  </defs>
+  <style>
+    .n rect{fill:#fff;stroke:#1F3A5F;stroke-width:1.5}
+    .n.ag rect{fill:#EEF2F7}
+    .n.io rect{fill:#1F3A5F}
+    .n.io text{fill:#fff}
+    .n.ext rect{fill:#fff;stroke-dasharray:5 4;stroke:#9C6B1A}
+    text{font:600 14px Inter,Arial,sans-serif;fill:#1B1F24}
+    .s{font:400 12px Inter,Arial,sans-serif;fill:#5E6670}
+    .n.io .s{fill:#D6DEE9}
+    .e{stroke:#5E6670;stroke-width:1.5;fill:none;marker-end:url(#a)}
+    .rb{stroke:#B5462F;stroke-width:1.5;fill:none;stroke-dasharray:6 4;marker-end:url(#r)}
+    .lbl{font:500 12px Inter,Arial,sans-serif;fill:#5E6670}
+    .lr{font:500 12px Inter,Arial,sans-serif;fill:#B5462F}
+  </style>
+
+  <g class="n io"><rect x="230" y="10" width="300" height="46" rx="8"/><text x="380" y="31" text-anchor="middle">Business enquiry</text><text class="s" x="380" y="47" text-anchor="middle">e.g. "benchmark this farmland site"</text></g>
+  <path class="e" d="M380 56 V78"/>
+
+  <g class="n ag"><rect x="230" y="80" width="300" height="50" rx="8"/><text x="380" y="101" text-anchor="middle">1 · Intake agent</text><text class="s" x="380" y="118" text-anchor="middle">splits enquiry into buckets → report template</text></g>
+  <path class="e" d="M380 130 V152"/>
+
+  <g class="n"><rect x="230" y="154" width="300" height="46" rx="8"/><text x="380" y="175" text-anchor="middle">Internal database lookup</text><text class="s" x="380" y="191" text-anchor="middle">fills each bucket from existing data</text></g>
+  <path class="e" d="M530 177 H598"/>
+  <text class="lbl" x="538" y="170">if missing</text>
+  <g class="n ext"><rect x="600" y="150" width="152" height="56" rx="8"/><text x="676" y="173" text-anchor="middle">Data collection</text><text class="s" x="676" y="190" text-anchor="middle">request → data back</text></g>
+  <path class="e" d="M676 206 V250 H532"/>
+  <path class="e" d="M380 200 V230"/>
+
+  <g class="n ag"><rect x="230" y="232" width="300" height="50" rx="8"/><text x="380" y="253" text-anchor="middle">2 · Data analyst agent</text><text class="s" x="380" y="270" text-anchor="middle">cleans, standardises and analyses the data</text></g>
+  <path class="e" d="M380 282 V304"/>
+
+  <g class="n ag"><rect x="230" y="306" width="300" height="50" rx="8"/><text x="380" y="327" text-anchor="middle">3 · Business analyst agent</text><text class="s" x="380" y="344" text-anchor="middle">reshapes findings to the business requirement</text></g>
+  <path class="e" d="M380 356 V378"/>
+
+  <g class="n ag"><rect x="230" y="380" width="300" height="46" rx="8"/><text x="380" y="401" text-anchor="middle">4 · Reviewer agent</text><text class="s" x="380" y="417" text-anchor="middle">checks the analysis and logic</text></g>
+  <path class="e" d="M380 426 V448"/>
+
+  <g class="n ag"><rect x="230" y="450" width="300" height="46" rx="8"/><text x="380" y="471" text-anchor="middle">5 · Designer agent → 6 · Design reviewer</text><text class="s" x="380" y="487" text-anchor="middle">builds the report, checks every chart renders</text></g>
+  <path class="e" d="M380 496 V518"/>
+
+  <g class="n ag"><rect x="230" y="520" width="300" height="46" rx="8"/><text x="380" y="541" text-anchor="middle">7 · Three full-read review rounds</text><text class="s" x="380" y="557" text-anchor="middle">every page, figure and graph, start to end</text></g>
+  <path class="e" d="M380 566 V588"/>
+
+  <g class="n io"><rect x="230" y="590" width="300" height="42" rx="8"/><text x="380" y="616" text-anchor="middle">Final report</text></g>
+
+  <path class="rb" d="M230 543 H160 V257 H226"/>
+  <text class="lr" x="20" y="400">error found:</text>
+  <text class="lr" x="20" y="416">routed back to the</text>
+  <text class="lr" x="20" y="432">responsible agent</text>
+</svg>
+</div>
+
+<h2>What each agent does</h2>
+<table>
+  <thead><tr><th>Agent</th><th>Job</th></tr></thead>
+  <tbody>
+    <tr><td>Intake</td><td>Reads the enquiry, works out what it is asking, and breaks it into predefined analysis buckets. The buckets become the report template.</td></tr>
+    <tr><td>Data retrieval</td><td>Searches the internal database for each bucket. Where data is missing, it sends a request to the data-collection system and waits for the data to come back.</td></tr>
+    <tr><td>Data analyst</td><td>Cleans and standardises the data and runs the analysis: segmentation, benchmarks, distributions, trends.</td></tr>
+    <tr><td>Business analyst</td><td>Checks the output against the business requirement and transforms it into what the reader needs to decide.</td></tr>
+    <tr><td>Reviewer</td><td>Reviews the analysis for errors and gaps before anything is designed.</td></tr>
+    <tr><td>Designer</td><td>Builds the report: layout, charts, maps and tables.</td></tr>
+    <tr><td>Design reviewer</td><td>Checks that every element has rendered correctly.</td></tr>
+    <tr><td>Final review ×3</td><td>Three separate rounds that read the whole report with its graphs and confirm it is correct. Any problem is sent back to the agent responsible.</td></tr>
+  </tbody>
+</table>
+
+<h2>Tools</h2>
+<div class="chips"><span class="chip">Python</span><span class="chip">LangGraph</span><span class="chip">pandas</span><span class="chip">MongoDB</span><span class="chip">Chart.js</span><span class="chip">Leaflet</span><span class="chip">HTML/CSS</span></div>
+
+<h2>Example output</h2>
+<p>The Athimuthlu farmland competitive benchmark was produced end-to-end by this system: a location profile, comparable projects across managed farmland, plotted and villa segments, resale analysis and an interactive map. A public version with client details removed is being prepared.</p>
+
+<p class="note">The code runs on Avacasa's internal database and collection systems, so it is not public. This page describes the architecture and results only.</p>
+
+<footer>Atharva Kanthi · <a href="index.html">Portfolio</a> · <a href="https://www.linkedin.com/in/atharva-kanthi/">LinkedIn</a></footer>
+</div>
+</body>
+</html>
