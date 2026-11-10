@@ -96,28 +96,27 @@
 <section id="dashboards">
   <div class="wrap">
     <div class="sec-head" data-reveal>
-      <span class="eyebrow">Dashboards</span>
-      <h2>Interactive, on public data</h2>
-      <p>Three dashboards that work on their own. Each one is built to answer a question quickly, with a light and a dark theme.</p>
+      <h2>Interactive dashboards</h2>
+      <p>The real tools, with confidential names removed. Filter, sort and explore; each follows the light or dark theme.</p>
     </div>
     <div class="grid g3">
-      <a class="card" href="dashboards/youtube.html" data-reveal>
-        <div class="tag">Content · Sentiment</div>
-        <h3>YouTube Intelligence</h3>
-        <p>How hill and plantation markets show up on YouTube: growth, category mix, who captures the views, and how audiences feel. Switch between Sakleshpur, Coorg and Chikmagalur.</p>
-        <div class="foot">Open dashboard <span aria-hidden="true">&rarr;</span></div>
-      </a>
-      <a class="card" href="dashboards/dubai.html" data-reveal>
+      <a class="card" href="dashboards/dubai-sales.html" data-reveal>
         <div class="tag">Transactions · Map</div>
-        <h3>Dubai Sales Market</h3>
-        <p>Registered sales across Dubai's areas with a map, price trends and area rankings, built on open government transaction data.</p>
+        <h3>Dubai sales transactions</h3>
+        <p>Registered sales by community with a map, monthly trend, property-type and off-plan filters, and sortable rankings.</p>
         <div class="foot">Open dashboard <span aria-hidden="true">&rarr;</span></div>
       </a>
-      <a class="card" href="dashboards/sri-lanka.html" data-reveal>
+      <a class="card" href="dashboards/sri-lanka-market.html" data-reveal>
         <div class="tag">Second-home market</div>
-        <h3>Sri Lanka Property Market</h3>
-        <p>How sale, long-term rental and short-term rental markets compare across districts, shown as shares and indices.</p>
+        <h3>Sri Lanka property workbench</h3>
+        <p>Sale, long-term rental and short-term rental markets compared across districts, with small groups suppressed.</p>
         <div class="foot">Open dashboard <span aria-hidden="true">&rarr;</span></div>
+      </a>
+      <a class="card" href="dashboards/index.html" data-reveal>
+        <div class="tag">Content · Sentiment</div>
+        <h3>YouTube intelligence and more</h3>
+        <p>Coorg, Chikmagalur and Sakleshpur content analysis, Sakleshpur search interest and the NYC residential market. Seven dashboards in all.</p>
+        <div class="foot">See all dashboards <span aria-hidden="true">&rarr;</span></div>
       </a>
     </div>
   </div>
@@ -131,23 +130,23 @@
       <p>Reports I wrote at Avacasa, rebuilt for public reading. Every figure is an aggregate: shares, indices and ranges, never individual listings, clients or sources.</p>
     </div>
     <div class="grid g3">
-      <a class="card" href="reports/chennai-hotels.html" data-reveal>
+      <a class="card" href="reports/auroville-location-report.html" data-reveal>
+        <div class="tag">Location · Auroville and Pondicherry</div>
+        <h3>Location report, built by the data analyst agent</h3>
+        <p>The full report: location profile, homes, plots, rentals, short stays and hotels, legal costs and buyer scenarios, with fifty exhibits and a map.</p>
+        <div class="foot">Read the report <span aria-hidden="true">&rarr;</span></div>
+      </a>
+      <a class="card" href="reports/chennai-hotel-market.html" data-reveal>
         <div class="tag">Hospitality · Chennai</div>
-        <h3>Chennai Hotel Market</h3>
-        <p>What drives hotel pricing in a budget-heavy city: zones, star tiers, amenities and discounting, with a hedonic model that explains 73% of rate variation.</p>
+        <h3>Chennai hotel market</h3>
+        <p>733 hotels mapped by micro-market and priced by zone, star tier, amenity and discount, with a hedonic model and an asset benchmark.</p>
         <div class="foot">Read the report <span aria-hidden="true">&rarr;</span></div>
       </a>
-      <a class="card" href="reports/athimuthlu.html" data-reveal>
-        <div class="tag">Location · Tamil Nadu</div>
-        <h3>Athimuthlu: A Farmland Corridor Read</h3>
-        <p>Cheap, uncontested land against unproven demand. A location report on the Bengaluru-facing farmland corridors, from value chain to yield to regulatory risk.</p>
-        <div class="foot">Read the report <span aria-hidden="true">&rarr;</span></div>
-      </a>
-      <a class="card" href="agent.html" data-reveal>
-        <div class="tag">Showcase · Multi-agent AI</div>
-        <h3>How the Data Analyst Agent Works</h3>
-        <p>The framework that produced the Athimuthlu report end to end: eight specialist agents, three review rounds, and a week of work cut to two days.</p>
-        <div class="foot">See the architecture <span aria-hidden="true">&rarr;</span></div>
+      <a class="card" href="reports/index.html" data-reveal>
+        <div class="tag">Hospitality · Pricing</div>
+        <h3>ITC portfolio pricing analysis</h3>
+        <p>Sixty-seven hotels and 388,208 published nightly rates: brand ladders, seasonality and lead time, plus an interactive room rate explorer.</p>
+        <div class="foot">All reports <span aria-hidden="true">&rarr;</span></div>
       </a>
     </div>
   </div>
@@ -192,7 +191,7 @@
         <p class="just">An unattended eight-stage pipeline that tracks YouTube coverage and audience sentiment for real-estate micro-markets. It fetches incrementally, governs API quota, and runs a five-provider LLM cascade that flags low-confidence results so they never reach the aggregates.</p>
         <div class="result"><b>Scale:</b> 27,000+ videos, 1,700 channels and 200,000+ comments analysed across three markets.</div>
         <div class="chips"><span class="chip">Python</span><span class="chip">LangGraph</span><span class="chip">SQLite</span><span class="chip">Pydantic</span><span class="chip">YouTube Data API</span></div>
-        <div class="foot"><a href="https://github.com/Atharvakanthi/Location-YouTube-Intelligence-System">Code <span aria-hidden="true">&rarr;</span></a><a href="dashboards/youtube.html">Live dashboard <span aria-hidden="true">&rarr;</span></a></div>
+        <div class="foot"><a href="https://github.com/Atharvakanthi/Location-YouTube-Intelligence-System">Code <span aria-hidden="true">&rarr;</span></a><a href="dashboards/index.html">Live dashboard <span aria-hidden="true">&rarr;</span></a></div>
       </div>
 
       <div class="card" data-reveal>
@@ -201,7 +200,7 @@
         <p class="just">667K property sales analysed in SQL: cleaning and de-duplication, price per square foot by borough and property type, year-on-year trends with LAG(), neighbourhood rankings with RANK(), and an interactive dashboard.</p>
         <div class="result"><b>Data:</b> New York City open property sales data.</div>
         <div class="chips"><span class="chip">SQL</span><span class="chip">DuckDB</span><span class="chip">PostgreSQL</span><span class="chip">Python</span><span class="chip">Plotly</span></div>
-        <div class="foot"><a href="https://github.com/Atharvakanthi/nyc-real-estate-market-analysis">Code <span aria-hidden="true">&rarr;</span></a><a href="dashboards/nyc.html">Live dashboard <span aria-hidden="true">&rarr;</span></a></div>
+        <div class="foot"><a href="https://github.com/Atharvakanthi/nyc-real-estate-market-analysis">Code <span aria-hidden="true">&rarr;</span></a><a href="dashboards/nyc-market.html">Live dashboard <span aria-hidden="true">&rarr;</span></a></div>
       </div>
 
       <div class="card" data-reveal>

@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coorg YouTube intelligence</title>
+<script src="../assets/vendor/chart.umd.js"></script>
+<style>
+  :root {
+    --blue: #2563A8;
+    --blue-light: #6FA3D8;
+    --blue-pale: #E8F0F9;
+    --grey: #8A96A3;
+    --grey-light: #EEF1F4;
+    --border: #DDE3E9;
+    --text: #1D2733;
+    --text-muted: #64707C;
+    --bg: #FFFFFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+  }
+  header {
+    padding: 20px 28px;
+    border-bottom: 2px solid var(--blue);
+  }
+  header h1 { font-size: 19px; font-weight: 600; color: var(--text); }
+  header p { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    padding: 12px 28px;
+    background: var(--grey-light);
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+  }
+  nav a { color: var(--blue); text-decoration: none; }
+  nav a:hover { text-decoration: underline; }
+
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .kpi { background: var(--bg); padding: 14px 18px; }
+  .kpi .num { font-size: 22px; font-weight: 700; color: var(--blue); }
+  .kpi .label { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  @media (max-width: 800px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+
+  main { padding: 8px 28px 40px; max-width: 1400px; margin: 0 auto; }
+
+  h2.section {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin: 28px 0 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  h2.section:first-of-type { border-top: none; margin-top: 12px; }
+
+  p.dek {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+    max-width: 980px;
+    margin-bottom: 16px;
+  }
+  p.dek.method {
+    color: var(--text-muted);
+    font-size: 12.5px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed var(--border);
+  }
+  a.ref {
+    color: var(--blue);
+    text-decoration: none;
+    border-bottom: 1px solid var(--blue-pale);
+  }
+  a.ref:hover { border-bottom-color: var(--blue); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px 12px;
+  }
+  .card h3 {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .chart-box { position: relative; height: 220px; }
+  .chart-box.tall { height: 260px; }
+  .chart-box.short { height: 170px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 10px; }
+  th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--border);
+    background: var(--grey-light);
+  }
+  td {
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--grey-light);
+    color: var(--text);
+  }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td a.ref { border-bottom: 1px solid var(--blue-pale); }
+  tr:last-child td { border-bottom: none; }
+
+  .full { grid-column: 1 / -1; }
+
+  footer {
+    padding: 16px 28px;
+    font-size: 11px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+</style>
+
+<style id="pf-wrap">
+html.pf-dk{filter:invert(.92) hue-rotate(180deg);background:#fff}
+html.pf-dk img,html.pf-dk video,html.pf-dk .leaflet-container,html.pf-dk .pf-keep{filter:invert(1) hue-rotate(180deg)}
+html{overflow-x:hidden}
+.pf-bar{position:fixed;right:16px;bottom:16px;z-index:99999;display:flex;gap:8px;font:600 13px/1 system-ui,-apple-system,Segoe UI,sans-serif}
+.pf-bar a,.pf-bar button{all:unset;cursor:pointer;box-sizing:border-box;padding:10px 16px;border-radius:999px;background:#10151f;color:#fff;box-shadow:0 6px 24px rgba(0,0,0,.25);font:inherit}
+.pf-bar a:hover,.pf-bar button:hover{background:#26324a}
+.pf-bar a:focus-visible,.pf-bar button:focus-visible{outline:2px solid #6aa5ff;outline-offset:2px}
+html.pf-dk .pf-bar{filter:invert(1) hue-rotate(180deg)}
+@media print{.pf-bar{display:none}}
+</style></head>
+<body>
+
+
+<header>
+  <h1>Coorg (Kodagu), Karnataka YouTube Data</h1>
+  <p>11,945 videos &middot; 623 channels &middot; 90,360 comments</p>
+</header>
+
+<nav>
+  <a href="#introduction">Introduction</a>
+  <a href="#methodology">Methodology</a>
+  <a href="#growth">Growth</a>
+  <a href="#categories">Categories</a>
+  <a href="#channels">Channels</a>
+  <a href="#efficiency">Efficiency</a>
+  <a href="#sentiment">Sentiment</a>
+  <a href="#keywords">Keywords</a>
+  <a href="#gaps">Gaps</a>
+  <a href="#realestate">Real Estate</a>
+  <a href="#comments">Comments</a>
+  <a href="#limitations">Limitations</a>
+</nav>
+
+<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+  <div class="kpi"><div class="num">11,945</div><div class="label">Videos tracked</div></div>
+  <div class="kpi"><div class="num">623</div><div class="label">Channels tracked</div></div>
+  <div class="kpi"><div class="num">327.2M</div><div class="label">Views (11,945 videos with snapshots)</div></div>
+  <div class="kpi"><div class="num">90,360</div><div class="label">Comments scored</div></div>
+</div>
+
+<main>
+
+<h2 class="section" id="introduction">Introduction</h2>
+<p class="dek">This report presents a quantitative profile of YouTube content related to Coorg (Kodagu), Karnataka, a hill region in the Western Ghats of Karnataka known for coffee plantations, spanning the Madikeri, Virajpet, and Somwarpet taluks (Kodagu district). This analysis was conducted to understand the structure, scale, and trajectory of online content and audience engagement around this location.</p>
+<p class="dek">The dataset covers 11,945 YouTube videos published between May 2010 and August 2026, collected from 623 channels discovered through YouTube search, supplementary web search (including Kannada-script queries), and landmark-based relevance filtering. Of these, 90,360 comments were collected and scored for sentiment. View, like, and comment counts are available for 11,945 videos (100.0% of the total); the remainder have been categorized and tracked but not yet snapshotted for engagement data. All figures in this report derived from view or like counts reflect the 11,945-video subset only.</p>
+<p class="dek">The central findings are: content production around Coorg (Kodagu), Karnataka underwent a structural shift in 2020, growing 435% in a single year, driven primarily by General travel and Real estate; and Festivals (+37%) is still growing year over year, while Trekking (-62%), Homestay (-65%) have plateaued or declined.</p>
+
+<h2 class="section" id="methodology">Methodology</h2>
+<p class="dek"><strong>Data collection.</strong> Channels were discovered via the YouTube Data API v3 search endpoint using 11 query terms (English, romanized, and Kannada-script variants including "Coorg", "Kodagu", "ಕೊಡಗು"). Each video was checked against a relevance vocabulary (location names plus confirmed local landmarks: Abbey Falls, Talacauvery, Iruppu Falls, Mallalli Falls, Chelavara Falls, Raja's Seat, Mandalpatti, Madikeri Fort, Dubare Elephant Camp, Pushpagiri Wildlife Sanctuary, Nisargadhama, Namdroling Monastery, Bylakuppe) before inclusion. Of the 11,945 videos that passed this relevance filter, 6.4% (760 videos) were subsequently classified as off-topic during content analysis.</p>
+<p class="dek"><strong>Classification.</strong> Each video was assigned a category and extracted keywords/themes via a multi-provider LLM classification pipeline. The input for each classification was the video's title, description, and up to three sample comments. The pipeline used a cascade of providers (Groq, Cerebras, Google Gemini, NVIDIA, Ollama Cloud) with automatic failover across multiple accounts per provider, batching 15 videos per call. Where two providers returned different categories for the same video, the result was flagged as low-confidence ("thin-flagged"); 7.1% of classifications (843 of 11,945) carry this flag. The 10-category taxonomy was not imposed in advance; it was developed iteratively from the data itself. An initial 8-category pass was expanded to 10 after the first results showed unclassified food/dining and news/current-events content that did not fit any existing category.</p>
+<p class="dek"><strong>Sentiment scoring.</strong> Each of the 90,360 collected comments was scored as positive, neutral, negative, or mixed. The primary classifier was Sarvam-105b, a model trained natively on Indian-language text including code-mixed Kannada-English, which resolved 15.3% of comments directly. The remaining comments were scored through the same multi-provider fallback cascade used for classification. Where the primary classifier returned a low-confidence result, a second provider was consulted for cross-verification; if both disagreed, the result was thin-flagged. 896 comments (1.0%) have no final sentiment label.</p>
+<p class="dek"><strong>Category definitions.</strong></p>
+<table>
+  <tr><th>Category</th><th>Scope</th></tr>
+  <tr><td>homestay_hospitality</td><td>Resorts, homestays, hotels, accommodation reviews, property tours, booking-oriented content</td></tr>
+  <tr><td>general_travel_vlog</td><td>Road trips, travel guides, "places to visit" compilations, route vlogs not specific to one activity</td></tr>
+  <tr><td>trekking_outdoor</td><td>Trek logs, hiking routes, camping, off-road adventure, specific trail coverage</td></tr>
+  <tr><td>coffee_estate_agriculture</td><td>Plantation tours, crop-specific content (robusta, arabica, black pepper), farming practices, estate management</td></tr>
+  <tr><td>real_estate_land</td><td>Land and plot listings, farm sales, property investment pitches, price discussions, "land for sale" content</td></tr>
+  <tr><td>nature_wildlife</td><td>Waterfalls, wildlife sightings, scenic/landscape footage, monsoon scenery, nature photography</td></tr>
+  <tr><td>festivals_culture</td><td>Temple visits, heritage sites (e.g., Abbey Falls, Talacauvery), local festivals, cultural events</td></tr>
+  <tr><td>food_dining</td><td>Restaurant reviews, local cuisine, food vlogs, cooking content set in or about Coorg (Kodagu), Karnataka</td></tr>
+  <tr><td>news_current_events</td><td>News coverage of events in or affecting Coorg (Kodagu), Karnataka (e.g., infrastructure, monsoon impacts, government visits)</td></tr>
+  <tr><td>off_topic</td><td>Content that passed the relevance filter but does not substantively relate to Coorg (Kodagu), Karnataka on review</td></tr>
+</table>
+
+<h2 class="section" id="growth">Growth</h2>
+<p class="dek">Content production around Coorg (Kodagu), Karnataka was modest through 2019 (31 uploads that year, 115 cumulative). In 2020, uploads increased 435% to 166, and have remained near that level since. The 2020 surge was driven primarily by General travel and Real estate content. Looking at 2025 to 2026 specifically: Festivals (+37%) is still posting year-over-year growth, while Trekking (-62%), Homestay (-65%) have plateaued or declined.</p>
+<div class="grid">
+  <div class="card">
+    <h3>Uploads per year</h3>
+    <div class="chart-box tall"><canvas id="cGrowth"></canvas></div>
+    <table>
+      <tr><th>Year</th><th class="num">Uploads</th><th class="num">Cumulative</th></tr>
+      <tr><td>2020</td><td class="num">166</td><td class="num">281</td></tr>
+      <tr><td>2021</td><td class="num">598</td><td class="num">879</td></tr>
+      <tr><td>2022</td><td class="num">928</td><td class="num">1,807</td></tr>
+      <tr><td>2023</td><td class="num">1,534</td><td class="num">3,341</td></tr>
+      <tr><td>2024</td><td class="num">2,042</td><td class="num">5,383</td></tr>
+      <tr><td>2025</td><td class="num">3,714</td><td class="num">9,097</td></tr>
+      <tr><td>2026</td><td class="num">2,848</td><td class="num">11,945</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Category growth, 2019 to 2020</h3>
+    <div class="chart-box tall"><canvas id="cSurge"></canvas></div>
+    <table>
+      <tr><th>Category</th><th class="num">Net change</th></tr>
+      <tr><td>General travel</td><td class="num">+34</td></tr>
+      <tr><td>Real estate</td><td class="num">+25</td></tr>
+      <tr><td>Coffee estate</td><td class="num">+18</td></tr>
+      <tr><td>Homestay</td><td class="num">+18</td></tr>
+      <tr><td>Festivals</td><td class="num">+14</td></tr>
+      <tr><td>Nature</td><td class="num">+10</td></tr>
+      <tr><td>Trekking</td><td class="num">+7</td></tr>
+      <tr><td>Food</td><td class="num">+4</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2 class="section" id="categories">Categories</h2>
+<p class="dek">Festivals content constitutes 26.3% of all tracked videos (3,136 of 11,945), making it the dominant category by volume. However, its average view count (48,204 per video among those with view data) ranks 1. This disparity between supply and engagement suggests content saturation in the Festivals category. In 8 of 10 categories, a single channel accounts for 25% or more of that category's total views. The concentration table below identifies each dominant channel; the uncorrected averages for concentrated categories do not represent the experience of a typical video in that space.</p>
+<div class="grid">
+  <div class="card">
+    <h3>Videos by category</h3>
+    <div class="chart-box tall"><canvas id="cCatVol"></canvas></div>
+    <table>
+      <tr><th>Category</th><th class="num">Videos</th><th class="num">%</th></tr>
+      <tr><td>Festivals</td><td class="num">3,136</td><td class="num">26.3%</td></tr>
+      <tr><td>General travel</td><td class="num">2,437</td><td class="num">20.4%</td></tr>
+      <tr><td>Nature</td><td class="num">1,560</td><td class="num">13.1%</td></tr>
+      <tr><td>Coffee estate</td><td class="num">945</td><td class="num">7.9%</td></tr>
+      <tr><td>Homestay</td><td class="num">794</td><td class="num">6.6%</td></tr>
+      <tr><td>Off topic</td><td class="num">760</td><td class="num">6.4%</td></tr>
+      <tr><td>News</td><td class="num">700</td><td class="num">5.9%</td></tr>
+      <tr><td>Trekking</td><td class="num">636</td><td class="num">5.3%</td></tr>
+      <tr><td>Real estate</td><td class="num">565</td><td class="num">4.7%</td></tr>
+      <tr><td>Food</td><td class="num">329</td><td class="num">2.8%</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Average views by category</h3>
+    <div class="chart-box tall"><canvas id="cCatViews"></canvas></div>
+    <table>
+      <tr><th>Category</th><th class="num">Avg views</th><th class="num">Median</th></tr>
+      <tr><td>Festivals</td><td class="num">48,204</td><td class="num">2,306</td></tr>
+      <tr><td>Nature</td><td class="num">35,025</td><td class="num">558</td></tr>
+      <tr><td>Food</td><td class="num">32,985</td><td class="num">868</td></tr>
+      <tr><td>Off topic</td><td class="num">25,641</td><td class="num">532</td></tr>
+      <tr><td>News</td><td class="num">23,070</td><td class="num">534</td></tr>
+      <tr><td>General travel</td><td class="num">15,526</td><td class="num">470</td></tr>
+      <tr><td>Homestay</td><td class="num">13,334</td><td class="num">671</td></tr>
+      <tr><td>Coffee estate</td><td class="num">7,579</td><td class="num">581</td></tr>
+      <tr><td>Trekking</td><td class="num">5,159</td><td class="num">421</td></tr>
+      <tr><td>Real estate</td><td class="num">2,633</td><td class="num">694</td></tr>
+    </table>
+  </div>
+  <div class="card full">
+    <h3>Top channel share of category views</h3>
+    <div class="chart-box short"><canvas id="cConcentration"></canvas></div>
+    <table>
+      <tr><th>Category</th><th>Top channel</th><th class="num">Share</th></tr>
+      <tr><td>News</td><td><a class="ref" href="https://www.youtube.com/channel/UClv4RIhhxb33XAeFLTN1U9w" target="_blank" rel="noopener">The Sepia Vault</a></td><td class="num">88%</td></tr>
+      <tr><td>Food</td><td><a class="ref" href="https://www.youtube.com/channel/UCco04pGIpOtfHePXG5MnB9g" target="_blank" rel="noopener">FoodyMonk</a></td><td class="num">53%</td></tr>
+      <tr><td>Nature</td><td><a class="ref" href="https://www.youtube.com/channel/UCCKQl1iUMncOcQTqbZoqRiw" target="_blank" rel="noopener">Tour Pickkars</a></td><td class="num">50%</td></tr>
+      <tr><td>Coffee estate</td><td><a class="ref" href="https://www.youtube.com/channel/UCfVcOOFnVHas2s2aBMt9rbw" target="_blank" rel="noopener">Travel Jagathu Vlog </a></td><td class="num">46%</td></tr>
+      <tr><td>Festivals</td><td><a class="ref" href="https://www.youtube.com/channel/UC8I38_CgZvhtPiO0oiBkrng" target="_blank" rel="noopener">COORG CANVAS</a></td><td class="num">45%</td></tr>
+      <tr><td>Off topic</td><td><a class="ref" href="https://www.youtube.com/channel/UC9dyrsYEmD4iGJ8Oz1G5dpw" target="_blank" rel="noopener">Dear Sir</a></td><td class="num">39%</td></tr>
+      <tr><td>Trekking</td><td><a class="ref" href="https://www.youtube.com/channel/UCnrWeKKQ-b8nC0Fp8sDppAQ" target="_blank" rel="noopener"> Expeditions by Monks & Warriors</a></td><td class="num">39%</td></tr>
+      <tr><td>Homestay</td><td><a class="ref" href="https://www.youtube.com/channel/UCSaT4BOZgFHCwBei_CfouYA" target="_blank" rel="noopener">Club Mahindra</a></td><td class="num">28%</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2 class="section" id="channels">Channels</h2>
+<p class="dek">The view distribution across videos is extremely concentrated: the top 1% of videos (119 of 11,945 with view data) account for 80.2% of all recorded views, and the top 10% account for 94.9%. <a class="ref" href="https://www.youtube.com/channel/UC8I38_CgZvhtPiO0oiBkrng" target="_blank" rel="noopener">COORG CANVAS</a>, with subscriber count not yet available, generates 21.0% of all tracked views from 479 videos in scope, driven primarily by a single video (<a class="ref" href="https://www.youtube.com/watch?v=RkUWmJ8LFlM" target="_blank" rel="noopener">"Kodava Valaga Aat ! Divin Iythichanda ! Coorg Valaga Dance #shorts #shortsvideo #coorg #respect"</a>, 13,541,639 views). The bulk of dedicated Coorg (Kodagu), Karnataka content production comes from channels in the 1,000 to 10,000 subscriber range (26 channels, 4 videos in scope). Channels above 100,000 subscribers contribute relatively few videos (58 total across 26 channels), consistent with Coorg (Kodagu), Karnataka being an incidental topic for large general-interest creators rather than a sustained focus.</p>
+<div class="grid">
+  <div class="card">
+    <h3>Top 10 channels by views</h3>
+    <div class="chart-box tall"><canvas id="cTopChannels"></canvas></div>
+    <table>
+      <tr><th>Channel</th><th class="num">Views</th></tr>
+      <tr><td><a class="ref" href="https://www.youtube.com/channel/UC8I38_CgZvhtPiO0oiBkrng" target="_blank" rel="noopener">COORG CANVAS</a></td><td class="num">68,582,333</td></tr>
+      <tr><td><a class="ref" href="https://www.youtube.com/channel/UC9kq5RJZp4FNssk7FSohe5A" target="_blank" rel="noopener">Mandira Thanya Devaiah</a></td><td class="num">36,080,959</td></tr>
+      <tr><td><a class="ref" href="https://www.youtube.com/channel/UCCKQl1iUMncOcQTqbZoqRiw" target="_blank" rel="noopener">Tour Pickkars</a></td><td class="num">35,041,409</td></tr>
+      <tr><td><a class="ref" href="https://www.youtube.com/channel/UCq14yZn3pHl27HeokMK_LlA" target="_blank" rel="noopener">Kodagu, the Heaven on Earth</a></td><td class="num">16,161,864</td></tr>
+      <tr><td><a class="ref" href="https://www.youtube.com/channel/UClv4RIhhxb33XAeFLTN1U9w" target="_blank" rel="noopener">The Sepia Vault</a></td><td class="num">14,277,168</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Channels by subscriber tier</h3>
+    <div class="chart-box tall"><canvas id="cSubTiers"></canvas></div>
+    <table>
+      <tr><th>Tier</th><th class="num">Channels</th><th class="num">Videos in scope</th></tr>
+      <tr><td><100</td><td class="num">2</td><td class="num">0</td></tr>
+      <tr><td>100 to 1K</td><td class="num">13</td><td class="num">1</td></tr>
+      <tr><td>1K to 10K</td><td class="num">26</td><td class="num">4</td></tr>
+      <tr><td>10K to 100K</td><td class="num">28</td><td class="num">150</td></tr>
+      <tr><td>100K+</td><td class="num">26</td><td class="num">58</td></tr>
+    </table>
+  </div>
+  <div class="card full">
+    <h3>View concentration</h3>
+    <div class="chart-box short"><canvas id="cPareto"></canvas></div>
+    <table>
+      <tr><th>Percentile</th><th class="num">Videos</th><th class="num">Share of views</th></tr>
+      <tr><td>Top 1%</td><td class="num">119</td><td class="num">80.2%</td></tr>
+      <tr><td>Top 5%</td><td class="num">597</td><td class="num">91.1%</td></tr>
+      <tr><td>Top 10%</td><td class="num">1194</td><td class="num">94.9%</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2 class="section" id="efficiency">Efficiency</h2>
+<p class="dek">To compare engagement across categories independent of channel size, views were divided by channel subscriber count to produce a per-subscriber reach ratio. Nature content shows the highest median ratio (0.192), meaning a typical Nature video reaches an audience equivalent to approximately that share of the publishing channel's subscriber base. Homestay (0.19) and Food (0.112) follow. Real estate content shows the lowest ratio (0.013) but this figure is influenced by <a class="ref" href="https://www.youtube.com/channel/UC2MNR0c0p1qWd0Unl-lc3ag" target="_blank" rel="noopener">Coorg Mysore Property online</a> (subscriber count not yet available, 173 videos in scope), which contributes 31% of the category's video volume. Excluding this single channel would materially change the Real estate efficiency figure, but the distortion is presented here for transparency rather than silently corrected.</p>
+<div class="grid">
+  <div class="card full">
+    <h3>Median views per subscriber, by category</h3>
+    <div class="chart-box"><canvas id="cEfficiency"></canvas></div>
+    <table>
+      <tr><th>Category</th><th class="num">Views/subscriber</th><th class="num">Median subs</th></tr>
+      <tr><td>Nature</td><td class="num">0.192</td><td class="num">594,000</td></tr>
+      <tr><td>Homestay</td><td class="num">0.190</td><td class="num">366,405</td></tr>
+      <tr><td>Food</td><td class="num">0.112</td><td class="num">729,000</td></tr>
+      <tr><td>Off topic</td><td class="num">0.074</td><td class="num">272,000</td></tr>
+      <tr><td>Trekking</td><td class="num">0.065</td><td class="num">153,250</td></tr>
+      <tr><td>General travel</td><td class="num">0.061</td><td class="num">251,500</td></tr>
+      <tr><td>Festivals</td><td class="num">0.053</td><td class="num">594,000</td></tr>
+      <tr><td>Coffee estate</td><td class="num">0.013</td><td class="num">72,500</td></tr>
+      <tr><td>Real estate</td><td class="num">0.013</td><td class="num">72,500</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2 class="section" id="sentiment">Sentiment</h2>
+<p class="dek">Overall, 54.6% of scored comments are positive, 26.3% neutral, 11.5% negative, and 2.8% mixed. However, the yearly trend shows positive share moving from approximately 87.7% in 2017 to 47.2% in 2026. This is driven primarily by one category: festivals/culture content's comment share fell from 96.9% to 17.3% while its own sentiment rate stayed comparatively stable (87.8% to 75.2% positive) -- a genuine mix shift, not an attitude change within the category.</p>
+<div class="grid">
+  <div class="card">
+    <h3>Overall sentiment</h3>
+    <div class="chart-box"><canvas id="cSentOverall"></canvas></div>
+    <table>
+      <tr><th>Label</th><th class="num">Count</th><th class="num">%</th></tr>
+      <tr><td>Positive</td><td class="num">49,297</td><td class="num">54.6%</td></tr>
+      <tr><td>Neutral</td><td class="num">23,789</td><td class="num">26.3%</td></tr>
+      <tr><td>Negative</td><td class="num">10,415</td><td class="num">11.5%</td></tr>
+      <tr><td>Mixed</td><td class="num">2,513</td><td class="num">2.8%</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Sentiment by category</h3>
+    <div class="chart-box"><canvas id="cSentCat"></canvas></div>
+    <table>
+      <tr><th>Category</th><th class="num">Pos %</th><th class="num">Neu %</th><th class="num">Neg %</th></tr>
+      <tr><td>General travel</td><td class="num">66.1</td><td class="num">20.3</td><td class="num">5.5</td></tr>
+      <tr><td>Trekking</td><td class="num">65.4</td><td class="num">12.7</td><td class="num">6.7</td></tr>
+      <tr><td>Homestay</td><td class="num">64.8</td><td class="num">26.8</td><td class="num">4.2</td></tr>
+      <tr><td>Food</td><td class="num">51.3</td><td class="num">29.7</td><td class="num">12.3</td></tr>
+      <tr><td>Coffee estate</td><td class="num">50.5</td><td class="num">34.3</td><td class="num">7.6</td></tr>
+      <tr><td>Real estate</td><td class="num">46.2</td><td class="num">42.1</td><td class="num">8.8</td></tr>
+    </table>
+  </div>
+  <div class="card full">
+    <h3>Positive and negative share by quarter</h3>
+    <div class="chart-box short"><canvas id="cSentTrend"></canvas></div>
+    <table>
+      <tr><th>Quarter</th><th class="num">Positive %</th><th class="num">Negative %</th></tr>
+      <tr><td>2021 Q1</td><td class="num">56.4</td><td class="num">7.7</td></tr>
+      <tr><td>2022 Q3</td><td class="num">72.1</td><td class="num">1.9</td></tr>
+      <tr><td>2023 Q3</td><td class="num">67.4</td><td class="num">6.7</td></tr>
+      <tr><td>2024 Q3</td><td class="num">56.1</td><td class="num">7.6</td></tr>
+      <tr><td>2025 Q3</td><td class="num">57.2</td><td class="num">15.2</td></tr>
+      <tr><td>2026 Q3</td><td class="num">62.6</td><td class="num">11.1</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2 class="section" id="keywords">Keywords</h2>
+<p class="dek">Keywords were extracted per video during the classification pass. The terms shown below appear across at least 5 of the 10 categories and no single category accounts for more than 50% of their occurrences, making them the shared vocabulary of the Coorg (Kodagu), Karnataka content space rather than markers of any one content type. "Kodagu district" and "western ghats" (the mountain range) function as geographic anchors connecting content across categories. Notably, Coorg (Kodagu), Karnataka is consistently co-mentioned with Chikmagalur (10 co-occurrences across videos), Sakleshpur (8 co-occurrences across videos), indicating that audiences and creators treat these locations as a connected regional set rather than independent destinations. This has implications for positioning: content and marketing framed around the "Coorg (Kodagu), Chikmagalur and Sakleshpur corridor" aligns with how the audience already thinks about the geography.</p>
+<div class="grid">
+  <div class="card full">
+    <h3>Top bridging keywords</h3>
+    <div class="chart-box"><canvas id="cKeywords"></canvas></div>
+    <table>
+      <tr><th>Keyword</th><th class="num">Frequency</th><th class="num">Categories</th></tr>
+      <tr><td>coorg</td><td class="num">7,867</td><td class="num">10</td></tr>
+      <tr><td>kodagu</td><td class="num">2,258</td><td class="num">10</td></tr>
+      <tr><td>madikeri</td><td class="num">1,841</td><td class="num">10</td></tr>
+      <tr><td>karnataka</td><td class="num">1,401</td><td class="num">10</td></tr>
+      <tr><td>virajpet</td><td class="num">809</td><td class="num">10</td></tr>
+      <tr><td>somwarpet</td><td class="num">492</td><td class="num">10</td></tr>
+      <tr><td>nature</td><td class="num">294</td><td class="num">9</td></tr>
+      <tr><td>rain</td><td class="num">257</td><td class="num">8</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2 class="section" id="gaps">Gaps</h2>
+<p class="dek">Plotting video count (a proxy for content supply) against average views (a proxy for audience demand) reveals where the two are mismatched. Food and dining content has the lowest supply in the dataset (329 videos with view data) but the highest average views (32,985). Even after removing the dominant channel in this category (<a class="ref" href="https://www.youtube.com/channel/UCco04pGIpOtfHePXG5MnB9g" target="_blank" rel="noopener">FoodyMonk</a>, 53% of category views), the remaining food videos still average 15,645 views, above the dataset-wide mean. This indicates genuine unmet audience interest rather than a single-outlier artifact. At the opposite end, homestay and hospitality content is the most supplied category (794 videos with view data) but ranks 5 in average views (13,334), consistent with content saturation. Trekking shows a similar pattern: high volume (636 videos), lowest average views of any non-off-topic category (5,159).</p>
+<div class="grid">
+  <div class="card">
+    <h3>Supply: videos by category</h3>
+    <div class="chart-box tall"><canvas id="cGapsSupply"></canvas></div>
+    <table>
+      <tr><th>Category</th><th class="num">Videos</th></tr>
+      <tr><td>Festivals</td><td class="num">3,136</td></tr>
+      <tr><td>General travel</td><td class="num">2,437</td></tr>
+      <tr><td>Nature</td><td class="num">1,560</td></tr>
+      <tr><td>Coffee estate</td><td class="num">945</td></tr>
+      <tr><td>Homestay</td><td class="num">794</td></tr>
+      <tr><td>Trekking</td><td class="num">636</td></tr>
+      <tr><td>Real estate</td><td class="num">565</td></tr>
+      <tr><td>Food</td><td class="num">329</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Demand: average views by category</h3>
+    <div class="chart-box tall"><canvas id="cGapsDemand"></canvas></div>
+    <table>
+      <tr><th>Category</th><th class="num">Avg views</th></tr>
+      <tr><td>Festivals</td><td class="num">48,204</td></tr>
+      <tr><td>Nature</td><td class="num">35,025</td></tr>
+      <tr><td>Food</td><td class="num">32,985</td></tr>
+      <tr><td>General travel</td><td class="num">15,526</td></tr>
+      <tr><td>Homestay</td><td class="num">13,334</td></tr>
+      <tr><td>Coffee estate</td><td class="num">7,579</td></tr>
+      <tr><td>Trekking</td><td class="num">5,159</td></tr>
+      <tr><td>Real estate</td><td class="num">2,633</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2 class="section" id="realestate">Real Estate</h2>
+<p class="dek">The real estate and land category comprises 565 videos across the full dataset and is one of the categories still growing year over year rather than plateauing. <a class="ref" href="https://www.youtube.com/channel/UC2MNR0c0p1qWd0Unl-lc3ag" target="_blank" rel="noopener">Coorg Mysore Property online</a> produces 31% of videos in this category. The keyword profile is distinctly transactional: the most common terms after location names are "madikeri" (106), "coffee estate" (104), "virajpet" (76), "kodagu" (46), "south coorg" (43). Comment sentiment in this category is the most neutral in the dataset (42.1% neutral, 46.2% positive, 8.8% negative), and the median comment length is 19 characters, consistent with a functional, inquiry-driven audience rather than one engaging with content for entertainment or information. For anyone positioning in this market: content in this space is consumed as a transaction channel, not a brand-building medium.</p>
+<div class="grid">
+  <div class="card">
+    <h3>Top channels, real estate and land</h3>
+    <div class="chart-box"><canvas id="cREChannels"></canvas></div>
+    <table>
+      <tr><th>Channel</th><th class="num">Videos</th><th class="num">Views</th></tr>
+      <tr><td><a class="ref" href="https://www.youtube.com/channel/UC2MNR0c0p1qWd0Unl-lc3ag" target="_blank" rel="noopener">Coorg Mysore Property online</a></td><td class="num">173</td><td class="num">310,104</td></tr>
+      <tr><td><a class="ref" href="https://www.youtube.com/channel/UC8XgwiJqNkS8NB-fvshleaQ" target="_blank" rel="noopener">Freeland Properties</a></td><td class="num">100</td><td class="num">128,128</td></tr>
+      <tr><td><a class="ref" href="https://www.youtube.com/channel/UCgrMzK49QUtQQto6-CuLnjw" target="_blank" rel="noopener">Coorg Estate's Link's </a></td><td class="num">73</td><td class="num">19,728</td></tr>
+      <tr><td><a class="ref" href="https://www.youtube.com/channel/UC5T_QpdtwlIM5NOaBxUPN_A" target="_blank" rel="noopener">COORG LAND AND PROPERTIES</a></td><td class="num">41</td><td class="num">45,634</td></tr>
+      <tr><td><a class="ref" href="https://www.youtube.com/channel/UCiJGX77evIQ9p_4t14bndIw" target="_blank" rel="noopener">Coorg Buzz</a></td><td class="num">13</td><td class="num">12,749</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Growth by year</h3>
+    <div class="chart-box"><canvas id="cREGrowth"></canvas></div>
+    <table>
+      <tr><th>Year</th><th class="num">Videos</th></tr>
+      <tr><td>2022</td><td class="num">47</td></tr>
+      <tr><td>2023</td><td class="num">43</td></tr>
+      <tr><td>2024</td><td class="num">74</td></tr>
+      <tr><td>2025</td><td class="num">238</td></tr>
+      <tr><td>2026</td><td class="num">96</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2 class="section" id="comments">Comments</h2>
+<p class="dek">Comments were collected as the top 100 per video ranked by YouTube's own relevance algorithm, not as a complete record; videos with more than 100 comments are undersampled in this dataset. Despite this limitation, the timestamp on each comment provides a direct measure of when engagement occurs relative to upload. Homestay (30.0%) and real estate (29.1%) content show the highest share of comments arriving more than 90 days after the video was published, indicating that audiences discover and engage with this content through search and recommendations well after the initial upload period. Food and dining content shows the opposite pattern (22.9% of comments arriving after 90 days), consistent with a spike-driven engagement model where attention is concentrated in the first days after upload and does not persist. For content categories where evergreen engagement is high, the implication is that older content remains discoverable and commercially relevant over extended periods.</p>
+<div class="grid">
+  <div class="card">
+    <h3>Comment volume by quarter</h3>
+    <div class="chart-box"><canvas id="cCommentVol"></canvas></div>
+    <table>
+      <tr><th>Quarter</th><th class="num">Comments</th></tr>
+      <tr><td>2024 Q4</td><td class="num">3,574</td></tr>
+      <tr><td>2025 Q1</td><td class="num">4,580</td></tr>
+      <tr><td>2025 Q2</td><td class="num">5,560</td></tr>
+      <tr><td>2025 Q3</td><td class="num">8,026</td></tr>
+      <tr><td>2025 Q4</td><td class="num">8,414</td></tr>
+      <tr><td>2026 Q2</td><td class="num">6,816</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Comments arriving 90+ days after upload</h3>
+    <div class="chart-box"><canvas id="cEvergreen"></canvas></div>
+    <table>
+      <tr><th>Category</th><th class="num">%</th></tr>
+      <tr><td>General travel</td><td class="num">32.8</td></tr>
+      <tr><td>Coffee estate</td><td class="num">30.3</td></tr>
+      <tr><td>Homestay</td><td class="num">30.0</td></tr>
+      <tr><td>Real estate</td><td class="num">29.1</td></tr>
+      <tr><td>Food</td><td class="num">22.9</td></tr>
+      <tr><td>Trekking</td><td class="num">14.3</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2 class="section" id="limitations">Limitations</h2>
+<p class="dek"><strong>Engagement data coverage.</strong> View, like, and comment counts are available for 11,945 of 11,945 tracked videos (100.0%). The remaining 0 videos have been categorized and tracked but were not snapshotted for engagement data because the snapshotting process runs only on newly discovered videos within each pipeline execution, not on previously known ones. All view, like, and average-view figures in this report are derived from the 11,945-video subset only. This is stated in each relevant section but bears emphasis: aggregate totals (327.2M views, 4.2M likes) represent a lower bound, not a complete census.</p>
+<p class="dek"><strong>Channel backfill.</strong> 460 of 623 tracked channels have been fully walked through their upload history. 163 remain in progress, including <a class="ref" href="https://www.youtube.com/channel/UCDw2xn6AVHYXptD9e9Qusmg" target="_blank" rel="noopener">Coorg Bharath Wuluvarana Vlogs</a> (545 so far (lifetime total not yet available)). Video counts for these channels will increase on future pipeline runs.</p>
+<p class="dek"><strong>Comment sampling.</strong> Comments were collected as the top 100 per video by YouTube's own relevance ranking (via the commentThreads.list endpoint with order=relevance). This is not a random or chronological sample. Videos with more than 100 comments are undersampled, and the selection of which comments are included reflects YouTube's relevance algorithm, not a researcher-chosen criterion.</p>
+<p class="dek"><strong>Comment coverage.</strong> 5,052 of 11,102 relevant videos (45.5%) have at least one comment on record; the remainder have no comments (disabled or genuinely none). All comment-level findings in this report (sentiment, comment timing, evergreen rates) are drawn from this subset, not the full relevant-video population. Of the videos with no comments, 268 have comments confirmed disabled by YouTube's API; the remaining 5,782 were checked but simply have zero comments.</p>
+<p class="dek"><strong>Reply capture.</strong> 53,340 top-level comments and 37,020 replies on record (41.0% of all comments are replies). Replies are captured via a full paginated comments.list(parentId=...) walk for every thread with totalReplyCount > 0 -- not a partial/inline-only capture.</p>
+<p class="dek"><strong>Shorts classification.</strong> Videos are classified as Shorts if their duration is 183 seconds or less. YouTube's official Shorts definition also requires a vertical or square aspect ratio, which was not collected in this dataset. A small number of long-format videos with short durations may be misclassified as Shorts.</p>
+<p class="dek"><strong>Language detection.</strong> Automatic language identification reports 50.3% of comments as English and 3.8% as Kannada, with the remaining 45.9% spread across 91 other detected languages. This long tail almost certainly represents misclassification of short, romanized, code-mixed Kannada-English text rather than genuine linguistic diversity. Sentiment classification accuracy on these misdetected comments may be lower than on cleanly identified English or Kannada text.</p>
+<p class="dek"><strong>Single-channel concentration.</strong> In 8 of 10 categories, one channel holds 25% or more of the category's total views. All per-category average figures should be interpreted with reference to the concentration table in the Categories section. This report does not silently remove outlier channels from averages; both the inclusive and exclusive figures are provided where relevant.</p>
+<p class="dek"><strong>Dislike data.</strong> YouTube removed public dislike counts from its API in December 2021. Third-party estimation services exist but were not used. This report therefore has no measure of negative engagement beyond comment sentiment, which captures a different signal (active written response rather than passive disapproval).</p>
+
+</main>
+
+<footer>Coorg (Kodagu), Karnataka YouTube Content Analysis. Built with the Location YouTube Intelligence System by Atharva Kanthi. Data current as of 2026-08-21 (YouTube Data API v3).</footer>
+
+<script>
+Chart.defaults.font.family = "-apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = '#64707C';
+
+const BLUE = '#2563A8';
+const BLUE_LIGHT = '#6FA3D8';
+const BLUE_PALE = '#BFD7EE';
+const GREY = '#8A96A3';
+const RED = '#C0504D';
+const PALETTE = ['#2563A8','#4A85C4','#6FA3D8','#94BFE6','#B9D7F0','#8A96A3','#A9B3BD','#C8D0D8','#3D7AB8','#5C99CC'];
+
+function grid() { return { color: '#EEF1F4' }; }
+function noGrid() { return { display: false }; }
+
+new Chart(document.getElementById('cGrowth'), {
+  type: 'bar',
+  data: {
+    labels: ["2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026"],
+    datasets: [{ data: [22, 39, 31, 166, 598, 928, 1534, 2042, 3714, 2848], backgroundColor: BLUE, borderRadius: 2 }]
+  },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { y: { grid: grid() }, x: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cSurge'), {
+  type: 'bar',
+  data: {
+    labels: ["Gen. travel", "Real estate", "Coffee est.", "Homestay", "Festivals", "Nature", "Trekking", "Food"],
+    datasets: [{ data: [34, 25, 18, 18, 14, 10, 7, 4], backgroundColor: BLUE, borderRadius: 2 }]
+  },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { x: { grid: grid() }, y: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cCatVol'), {
+  type: 'bar',
+  data: { labels: ["Festivals", "Gen. travel", "Nature", "Coffee est.", "Homestay", "Off topic", "News", "Trekking", "Real estate", "Food"],
+    datasets: [{ data:[3136, 2437, 1560, 945, 794, 760, 700, 636, 565, 329], backgroundColor: PALETTE, borderRadius:2 }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { x: { grid: grid() }, y: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cCatViews'), {
+  type: 'bar',
+  data: { labels: ["Festivals", "Nature", "Food", "Off topic", "News", "Gen. travel", "Homestay", "Coffee est.", "Trekking", "Real estate"],
+    datasets: [{ data:[48204, 35025, 32985, 25641, 23070, 15526, 13334, 7579, 5159, 2633], backgroundColor: PALETTE, borderRadius:2 }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { x: { grid: grid() }, y: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cConcentration'), {
+  type: 'bar',
+  data: { labels: ["News", "Food", "Nature", "Coffee est.", "Festivals", "Off topic", "Trekking", "Homestay"],
+    datasets: [{ data:[88, 53, 50, 46, 45, 39, 39, 28], backgroundColor: BLUE, borderRadius:2 }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { x: { grid: grid(), max:100, ticks:{callback:v=>v+'%'} }, y: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cTopChannels'), {
+  type: 'bar',
+  data: { labels: ["COORG CANVAS", "Mandira Thanya Devaiah", "Tour Pickkars", "Kodagu, the Heaven on Earth", "The Sepia Vault"],
+    datasets: [{ data:[68582333, 36080959, 35041409, 16161864, 14277168], backgroundColor: BLUE, borderRadius:2 }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { x: { grid: grid(), ticks:{callback:v=>(v/1e6).toFixed(1)+'M'} }, y: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cSubTiers'), {
+  type: 'bar',
+  data: { labels: ["<100", "100 to 1K", "1K to 10K", "10K to 100K", "100K+"],
+    datasets: [{ data:[2, 13, 26, 28, 26], backgroundColor: BLUE, borderRadius:2 }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { y: { grid: grid() }, x: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cPareto'), {
+  type: 'bar',
+  data: { labels: ['Top 1%','Top 5%','Top 10%'],
+    datasets: [{ data:[80.2, 91.1, 94.9], backgroundColor: BLUE, borderRadius:2 }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { x: { grid: grid(), max:100, ticks:{callback:v=>v+'%'} }, y: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cEfficiency'), {
+  type: 'bar',
+  data: { labels: ["Nature", "Homestay", "Food", "Off topic", "Trekking", "Gen. travel", "Festivals", "Coffee est.", "Real estate"],
+    datasets: [{ data:[0.192, 0.19, 0.112, 0.074, 0.065, 0.061, 0.053, 0.013, 0.013],
+      backgroundColor: ctx => ctx.dataIndex===8 ? RED : BLUE, borderRadius:2 }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { x: { grid: grid() }, y: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cSentOverall'), {
+  type: 'doughnut',
+  data: { labels: ['Positive','Neutral','Negative','Mixed'],
+    datasets: [{ data:[54.6, 26.3, 11.5, 2.8], backgroundColor:[BLUE,BLUE_LIGHT,RED,GREY], borderColor:'#fff', borderWidth:2 }] },
+  options: { responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{legend:{position:'bottom'}} }
+});
+
+new Chart(document.getElementById('cSentCat'), {
+  type: 'bar',
+  data: { labels: ["Gen. travel", "Trekking", "Homestay", "Food", "Coffee est.", "Real estate"],
+    datasets: [
+      { label:'Positive', data:[66.1, 65.4, 64.8, 51.3, 50.5, 46.2], backgroundColor: BLUE, stack:'s' },
+      { label:'Neutral', data:[20.3, 12.7, 26.8, 29.7, 34.3, 42.1], backgroundColor: BLUE_PALE, stack:'s' },
+      { label:'Negative', data:[5.5, 6.7, 4.2, 12.3, 7.6, 8.8], backgroundColor: RED, stack:'s' }
+    ] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top'}},
+    scales: { x: { stacked:true, grid: grid(), max:100, ticks:{callback:v=>v+'%'} }, y: { stacked:true, grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cSentTrend'), {
+  type: 'line',
+  data: { labels: ["2021 Q1", "2022 Q3", "2023 Q3", "2024 Q3", "2025 Q3", "2026 Q3"],
+    datasets: [
+      { label:'Positive %', data:[56.4, 72.1, 67.4, 56.1, 57.2, 62.6], borderColor: BLUE, backgroundColor:'transparent', tension:0.25, pointRadius:3 },
+      { label:'Negative %', data:[7.7, 1.9, 6.7, 7.6, 15.2, 11.1], borderColor: RED, backgroundColor:'transparent', tension:0.25, pointRadius:3 }
+    ] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top'}},
+    scales: { y: { grid: grid(), ticks:{callback:v=>v+'%'} }, x: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cKeywords'), {
+  type: 'bar',
+  data: { labels: ["coorg", "kodagu", "madikeri", "karnataka", "virajpet", "somwarpet", "nature", "rain"],
+    datasets: [{ data:[7867, 2258, 1841, 1401, 809, 492, 294, 257], backgroundColor: BLUE, borderRadius:2 }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { x: { grid: grid() }, y: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cGapsSupply'), {
+  type: 'bar',
+  data: { labels: ["Festivals", "Gen. travel", "Nature", "Coffee est.", "Homestay", "Trekking", "Real estate", "Food"],
+    datasets: [{ data:[3136, 2437, 1560, 945, 794, 636, 565, 329], backgroundColor: BLUE, borderRadius:2 }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { x: { grid: grid() }, y: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cGapsDemand'), {
+  type: 'bar',
+  data: { labels: ["Festivals", "Nature", "Food", "Gen. travel", "Homestay", "Coffee est.", "Trekking", "Real estate"],
+    datasets: [{ data:[48204, 35025, 32985, 15526, 13334, 7579, 5159, 2633], backgroundColor: BLUE_LIGHT, borderRadius:2 }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { x: { grid: grid() }, y: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cREChannels'), {
+  type: 'bar',
+  data: { labels: ["Coorg Mysore Property online", "Freeland Properties", "Coorg Estate's Link's ", "COORG LAND AND PROPERTIES", "Coorg Buzz"],
+    datasets: [{ data:[173, 100, 73, 41, 13], backgroundColor: BLUE, borderRadius:2 }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { x: { grid: grid() }, y: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cREGrowth'), {
+  type: 'bar',
+  data: { labels: ["2022", "2023", "2024", "2025", "2026"],
+    datasets: [{ data:[47, 43, 74, 238, 96], backgroundColor: BLUE, borderRadius:2 }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { y: { grid: grid() }, x: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cCommentVol'), {
+  type: 'bar',
+  data: { labels: ["2024 Q4", "2025 Q1", "2025 Q2", "2025 Q3", "2025 Q4", "2026 Q2"],
+    datasets: [{ data:[3574, 4580, 5560, 8026, 8414, 6816], backgroundColor: BLUE, borderRadius:2 }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { y: { grid: grid() }, x: { grid: noGrid() } } }
+});
+
+new Chart(document.getElementById('cEvergreen'), {
+  type: 'bar',
+  data: { labels: ["Gen. travel", "Coffee est.", "Homestay", "Real estate", "Food", "Trekking"],
+    datasets: [{ data:[32.8, 30.3, 30.0, 29.1, 22.9, 14.3], backgroundColor: BLUE, borderRadius:2 }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales: { x: { grid: grid(), ticks:{callback:v=>v+'%'} }, y: { grid: noGrid() } } }
+});
+</script>
+
+
+<script id="pf-wrap-js">(function(){
+var NATIVE='light',R=document.documentElement,k='theme',t=null;
+try{t=localStorage.getItem(k)}catch(e){}
+if(!t){t='dark'}
+function ap(){R.classList.toggle('pf-dk',(t==='dark')!==(NATIVE==='dark'));b&&(b.textContent=t==='dark'?'Light mode':'Dark mode')}
+var bar=document.createElement('div');bar.className='pf-bar';
+bar.innerHTML='<a href="../dashboards/index.html">Back to portfolio</a><button type="button" id="pf-t"></button>';
+var b;document.addEventListener('DOMContentLoaded',function(){document.body.appendChild(bar);b=document.getElementById('pf-t');b.onclick=function(){t=t==='dark'?'light':'dark';try{localStorage.setItem(k,t)}catch(e){}ap()};ap()});
+if((t==='dark')!==(NATIVE==='dark'))R.classList.add('pf-dk');
+})();</script></body>
+</html>
